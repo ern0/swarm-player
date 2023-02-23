@@ -28,7 +28,9 @@ async def handler(websocket, path):
             await handler_recv(websocket)
             
     except websockets.exceptions.ConnectionClosedOK:
-        print("connection lost")
+        print("disconnected")
+    except websockets.exceptions.ConnectionClosedError:
+        print("disconnected")
 
 async def handler_send(websocket):
                                         
