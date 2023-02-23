@@ -47,6 +47,10 @@ function page(req) {
 
 	} // for
 
+	if (req == "op") {
+		display("...");
+	}
+
 	if (req == "bye") {
 		setTimeout(function() {
 			page("welcome");
@@ -57,6 +61,10 @@ function page(req) {
 
 function intent(req) {
 	app.intent = req;
+}
+
+function display(content) {
+	elm("kontent").innerHTML = content;
 }
 
 function show(id) {
@@ -87,7 +95,7 @@ function handle_socket_open(event) {
 }
 
 function handle_socket_message(event) {
-	elm("kontent").innerHTML = event.data;
+	display(event.data);
 };
 
 function handle_socket_close(event) {
