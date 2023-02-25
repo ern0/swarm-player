@@ -5,7 +5,8 @@ mod client;
 
 use simple_websockets;
 use client_manager::ClientManager;
-use std::thread;
+use std::time::{ Duration };
+use std::thread::{ sleep, spawn };
 use std::sync::{ Mutex, Arc };
 use std::rc::Rc;
 
@@ -15,12 +16,14 @@ pub fn main() {
         .expect("failed to listen on port 8080");
 
     let client_manager = ClientManager::new(event_hub);
-    let cm1 = Arc::new(client_manager);
+    let cm1 = Arc::new(Mutex::new(client_manager));
     let cm2 = cm1.clone();
 
-    //thread::spawn(move || cm1.run() );
+    spawn(move || cm1.lock().unwrap().run() );
 
-    thread::spawn(move || cm1.broadcast(String::from("hello")) );
-    cm2.broadcast(String::from("hello"));
+    loop {
+        cm2.lock().unwrap().broadcast(String::from("hello"));
+        sleep(Duration::from_millis(1000));
+    }
 
 }
