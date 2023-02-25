@@ -1,8 +1,11 @@
+#[allow(unused)]
+
 mod client_manager;
 mod client;
 
 use simple_websockets;
 use client_manager::ClientManager;
+use std::thread;
 
 pub fn main() {
 
@@ -10,6 +13,8 @@ pub fn main() {
         .expect("failed to listen on port 8080");
 
     let client_manager = ClientManager::new(event_hub);
-    client_manager.run();
+    //thread::spawn(|| client_manager.run() );
+
+    client_manager.broadcast(String::from("hello"));
 
 }
