@@ -13,7 +13,7 @@ pub struct ClientManager {
 impl ClientManager {
 
 	pub fn new(event_hub: EventHub) -> Self {
-		return Self {
+		return ClientManager {
 			event_hub: event_hub,
 			clients: HashMap::new(),
 		}
@@ -26,28 +26,15 @@ impl ClientManager {
             match self.event_hub.poll_event() {
 
                 Event::Connect(client_id, responder) => {
-                    
-                    println!("A client connected with id #{}", client_id);
-
-                    let client = Client { 
-                        id: client_id, 
-                        responder: responder,
-                    };
-                    self.clients.insert(client.id, client);
-
+                    self.on_connect(responder, client_id);                    
                 },
 
                 Event::Disconnect(client_id) => {
-                    self.disconnect(&client_id);                
+                    self.on_disconnect(client_id);                
                 },
 
                 Event::Message(client_id, message) => {
-
-                    println!("Received a message from client #{}: {:?}", client_id, message);
-
-                    let client = self.clients.get(&client_id).unwrap();
-                    client.process_incoming_message(message);
-
+                    self.on_message(client_id, message);
                 },
 
             }
@@ -56,12 +43,32 @@ impl ClientManager {
 
     }
 
-    fn disconnect(self: &mut ClientManager, client_id: &u64) {
+    fn on_connect(self: &mut ClientManager, responder: Responder, client_id: u64) {
 
-        println!("Client #{} disconnected.", &client_id);
+        println!("A client connected with id #{}", client_id);
+
+        let client = Client { 
+            id: client_id, 
+            responder: responder,
+        };
+        self.clients.insert(client.id, client);
+
+    }
+
+    fn on_disconnect(self: &mut ClientManager, client_id: u64) {
+
+        println!("Client #{} disconnected.", client_id);
         self.clients.remove(&client_id);
 
     }
 
+    fn on_message(self: &ClientManager, client_id: u64, message: Message) {
+
+        println!("Received a message from client #{}: {:?}", client_id, message);
+
+        let client = self.clients.get(&client_id).unwrap();
+        client.process_incoming_message(message);
+
+    }
 
 }
