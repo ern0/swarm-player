@@ -7,15 +7,12 @@ function main() {
 	app = {};
 	app.ws = null;
 	init_ui();
+	app.clock_skew = 0;
 
 	app.intent = "offline";
 	page("welcome");
 
-	setInterval(function() {
-		if ((app.ws) && (app.ws.readyState == app.ws.OPEN)) {
-			app.ws.send("client->server");
-		}
-	}, 2500);
+	setTimeout(heartbeat, 500);
 
 }
 
@@ -92,10 +89,14 @@ function discard_websocket() {
 
 function handle_socket_open(event) {
 	page("op");
+	clock_sync_start();
 }
 
 function handle_socket_message(event) {
-	display(event.data);
+	packet = JSON.parse(event.data);
+
+	if (packet.type == "cmd.disp") display(packet.data);
+	if (packet.type == "ans.clk") clock_sync_eval(packet.data);
 };
 
 function handle_socket_close(event) {
@@ -123,4 +124,34 @@ function handle_button_disconnect() {
 	discard_websocket();
 	intent("offline");
 	page("bye");
+}
+
+function send(signature, args) {	
+
+	if (!app.ws) return;
+	if (app.ws.readyState != app.ws.OPEN) return;
+	
+	packet = { "type": signature, "data": args };
+	data = JSON.stringify(packet);
+	app.ws.send(data);
+
+}
+
+function heartbeat() {
+	send("rep.clk", [get_clock(), app.clock_skew]);
+	setTimeout(heartbeat, 2500);
+}
+
+function get_clock() {
+	return Date.now() + app.clock_skew;
+}
+
+function clock_sync_start() {
+	app.clock_c0 = Date.now();
+	send("req.clk", [app.clock_c0]);
+}
+
+function clock_sync_eval(clock_ref) {
+	app.clock_c1 = Date.now();
+	console.log(app.clock_c0, clock_ref, app_clock_c1);///
 }
