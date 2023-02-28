@@ -50,4 +50,3 @@ Implement auto-join:
 
 
 ## Milestone 2
-
