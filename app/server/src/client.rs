@@ -34,6 +34,7 @@ impl Client {
             if message_type == "CLK0" {
                 let clk0 = self.parse_message_data_int(root_object, 0);
                 let clk_server = self.process_request_clk0(clk0);
+                self.send_response_int(String::from("CLKR"), clk_server);
             }
         }
 
@@ -62,15 +63,52 @@ impl Client {
         return 0;
     }
 
-    fn process_request_clk0(&self, clk0: i64) -> u128 {
+    fn process_request_clk0(&self, clk0: i64) -> i64 {
 
         let clk_server = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
-            .as_millis();
+            .as_millis()
+            as i64;
 
         return clk_server;
     }
 
+    fn send_response_int(&self, command: String, value: i64) {
+        
+        let mut response: String = String::from("{");
+        add_key(&mut response, "type");
+        add_quoted(&mut response, "CLKR");
+        response.push_str(",");
+        add_key(&mut response, "data");
+        response.push_str("[");
+        response.push_str(&value.to_string());
+        response.push_str("]");
+        response.push_str("}");
+
+        self.send_response(response);
+    }
+
+    fn send_response(&self, response: String) {
+
+        println!("send: [{}]", response);
+
+        let message = Message::Text(response);
+        self.responder.send(message);
+
+    }
 }
 
+
+fn add_key(result: &mut String, value: &str) {
+
+    add_quoted(result, value);
+    result.push_str(":");
+}
+
+fn add_quoted(result: &mut String, value: &str ) {
+
+    result.push_str("\"");
+    result.push_str(value);
+    result.push_str("\"");
+}
