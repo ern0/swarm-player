@@ -8,12 +8,12 @@ function main() {
 	app.ws = null;
 	init_ui();
 	app.clock_skew = 0;
+	app.heartbeat = null;
 
 	app.intent = "offline";
 	page("welcome");
 
-	setTimeout(heartbeat, 500);
-
+	schedule_heartbeat(500);
 }
 
 function init_ui() {
@@ -95,8 +95,8 @@ function handle_socket_open(event) {
 function handle_socket_message(event) {
 	packet = JSON.parse(event.data);
 
-	if (packet.type == "DISP") display(packet.data);
-	if (packet.type == "CLKR") clock_sync_eval(packet.data);
+	if (packet.type == "DISPLAY") display(packet.data);
+	if (packet.type == "CLK_REF") clock_sync_eval(packet.data[0]);
 };
 
 function handle_socket_close(event) {
@@ -135,23 +135,56 @@ function send(signature, args) {
 	data = JSON.stringify(packet);
 	app.ws.send(data);
 
+	schedule_heartbeat(1000);
 }
 
-function heartbeat() {
-	send("heartbeat", [get_clock(), app.clock_skew]);
-	setTimeout(heartbeat, 2500);
+function send_heartbeat() {
+	send("HEARTBEAT", [get_clock(), app.clock_skew]);
+}
+
+function schedule_heartbeat(timeout) {
+
+	if (app.heartbeat != null) {
+		clearTimeout(app.heartbeat);
+	}
+	
+	app.heartbeat = setTimeout(send_heartbeat, timeout);
+
 }
 
 function get_clock() {
-	return Date.now() + app.clock_skew;
+
+	var forced_error = +50;
+	var now = Date.now() + forced_error;
+	var corrected = now + app.clock_skew;
+
+	return corrected;
 }
 
 function clock_sync_start() {
-	app.clock_c0 = Date.now();
-	send("CLK0", [app.clock_c0]);
+	app.clock_c0 = get_clock();
+	send("CLK_0", [app.clock_c0]);
 }
 
 function clock_sync_eval(clock_ref) {
-	app.clock_c1 = Date.now();
-	console.log(app.clock_c0, clock_ref, app_clock_c1);///
+	
+	app.clock_c1 = get_clock();
+
+	var turnaround = app.clock_c1 - app.clock_c0;
+	var distance = turnaround / 2;
+	var estimation = app.clock_c0 + distance;
+	app.clock_skew = clock_ref - estimation;
+
+	var z = app.clock_c0;
+	var t0 = app.clock_c0 - z;
+	var tref = clock_ref - z;
+	var t1 = app.clock_c1 - z;
+	var est = estimation - z;
+
+	console.log("--");
+	console.log("t0=", t0, "tref=", tref, "t1=", t1);
+	console.log("turnaround=", turnaround, "distance=", distance);	
+	console.log("estimation", est, "skew:", app.clock_skew);
+
+	setTimeout(clock_sync_start, 100);
 }

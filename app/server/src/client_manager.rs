@@ -8,7 +8,7 @@ use crate::client::Client;
 
 pub struct ClientManager {
 	event_hub: EventHub,
-	clients: Mutex< HashMap<u64, Client> >,
+	clients: Mutex<HashMap<u64, Client>>,
 }
 
 impl ClientManager {
@@ -43,7 +43,7 @@ impl ClientManager {
 
     fn on_connect(&self, responder: Responder, client_id: u64) {
 
-        println!("A client connected with id #{}", client_id);
+        println!("connected, id={}", client_id);
 
         let client = Client::new(client_id, responder);
         self.clients.lock().unwrap().insert(client.id, client);
@@ -52,7 +52,7 @@ impl ClientManager {
 
     fn on_disconnect(&self, client_id: u64) {
 
-        println!("Client #{} disconnected.", client_id);
+        println!("disconnected, id={}", client_id);
 
         self.clients.lock().unwrap().remove(&client_id);
 
@@ -60,11 +60,14 @@ impl ClientManager {
 
     fn on_message(&self, client_id: u64, message: Message) {
 
-        println!("Received a message from client #{}: {:?}", client_id, message);
+        if let Message::Text(text) = message {
+            
+            println!("received, client={} message={}", client_id, text);
 
-        let hash_map = self.clients.lock().unwrap();
-        let client = hash_map.get(&client_id).unwrap();
-        client.process_incoming_message(message);
+            let mut hash_map = self.clients.lock().unwrap();
+            let client: &mut Client = hash_map.get_mut(&client_id).unwrap();
+            client.process_incoming_message(text);
+        }
 
     }
 
@@ -73,7 +76,7 @@ impl ClientManager {
         let hash_map = self.clients.lock().unwrap();
         let size = hash_map.len();
 
-        println!("Sending broadcast: {}", size);
+        //println!("Sending broadcast: {}", size);
 
         for (_id, client) in hash_map.iter() {
        		client.responder.send(Message::Text(size.to_string()));
