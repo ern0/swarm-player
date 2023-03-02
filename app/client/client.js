@@ -4,18 +4,24 @@ document.addEventListener("DOMContentLoaded", main);
 
 function main() {
 
-	app = {};
-	app.websocket = null;
-	app.heartbeat = null;
+	init_app_props();
 	clock_sync_reset();
-	init_ui();
+	init_bind_buttons();
 
 	app.intent = "offline";
 	page("welcome");
 
 }
 
-function init_ui() {
+function init_app_props() {
+
+	app = {};
+	app.websocket = null;
+	app.heartbeat = null;
+
+}
+
+function init_bind_buttons() {
 
 	elm("connect").onclick = handle_button_connect;
 	elm("abort").onclick = handle_button_abort;
@@ -99,16 +105,22 @@ function handle_socket_open(event) {
 function handle_socket_message(event) {
 	packet = JSON.parse(event.data);
 
+	console.log("packet", packet);
+
 	if (packet.type == "DISPLAY") display(packet.data);
 	if (packet.type == "CLK_REF") clock_sync_eval(packet.data[0]);
+	
+	//...
+
 };
 
 function handle_socket_close(event) {
 
-	if (app.intent == "offline") return;
-
 	stop_heartbeat();
 	discard_websocket();
+
+	if (app.intent == "offline") return;
+
 	page("join");
 	setTimeout(create_websocket, 400);
 
@@ -126,9 +138,11 @@ function handle_button_abort() {
 }
 
 function handle_button_disconnect() {
+
 	discard_websocket();
 	intent("offline");
 	page("bye");
+
 }
 
 function send(signature, args) {	
@@ -167,6 +181,7 @@ function get_raw_clock() {
 
 	var forced_error = 500;
 	var now = Date.now() + forced_error;
+
 	return now;
 }
 
@@ -210,8 +225,7 @@ function clock_sync_calc_skew(clock_ref) {
 	var change = Math.abs(app.clock_skew - skew);
 	if (change > 50) app.clock_skew = skew;
 
-	clock_sync_debug(clock_ref, turnaround, distance, estimation, skew, change);
-
+	///clock_sync_debug(clock_ref, turnaround, distance, estimation, skew, change);
 }
 
 function clock_sync_reschedule() {
@@ -226,7 +240,6 @@ function clock_sync_reschedule() {
 	sleep_duration_ms += Math.random(2000);
 
 	setTimeout(clock_sync_start, sleep_duration_ms);
-
 }
 
 function clock_sync_debug(clock_ref, turnaround, distance, estimation, skew) {
@@ -241,5 +254,4 @@ function clock_sync_debug(clock_ref, turnaround, distance, estimation, skew) {
 	console.log("t_0:", t0, "t_ref:", tref, "t_1:", t1);
 	console.log("turnaround:", turnaround, "distance:", distance);	
 	console.log("estimation:", est, "meas.skew:", skew, "eff.skew:", app.clock_skew);
-
 }
