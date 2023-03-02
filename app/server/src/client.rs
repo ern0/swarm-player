@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 use std::thread::sleep;
-use std::time::{Duration};
+use std::time::Duration;
 use simple_websockets::{Message, Responder};
 use tinyjson::JsonValue;
 use crate::utils::{json_add_key, json_add_quoted, now};
@@ -74,12 +74,10 @@ impl Client {
         
         let _clk0 = self.parse_message_data_int(root_object, 0);
 
-        sleep(Duration::from_millis(1000));
+        sleep(Duration::from_millis(100));
         let clk_server = now();
-        println!("REPORT: {}", clk_server - 1677710000000);
-        sleep(Duration::from_millis(1000));
-
-        ////println!("REPORT: {}", (clk_server - self.epoch));
+        println!("report for clock sync: {}", clk_server - 1677710000000);
+        sleep(Duration::from_millis(100));
 
         self.send_response_int(String::from("CLK_REF"), clk_server);
     }
@@ -101,8 +99,6 @@ impl Client {
 
     fn send_response(&self, response: String) {
         
-        ////println!("send: [{}]", response);
-
         let message = Message::Text(response);
         self.responder.send(message);
     }

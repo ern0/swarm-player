@@ -24,7 +24,9 @@ impl ClientManager {
     pub fn run(&self) {
 
         loop {
+
             match self.event_hub.poll_event() {
+
                 Event::Connect(client_id, responder) => {
                     self.on_connect(responder, client_id);
                 }
@@ -36,7 +38,9 @@ impl ClientManager {
                 Event::Message(client_id, message) => {
                     self.on_message(client_id, message);
                 }
+
             }
+
         }
 
     }
@@ -51,7 +55,7 @@ impl ClientManager {
 
     fn on_disconnect(&self, client_id: u64) {
 
-        ////println!("disconnected, id={}", client_id);
+        println!("disconnected, id={}", client_id);
 
         self.clients.lock().unwrap().remove(&client_id);
     }
@@ -59,9 +63,6 @@ impl ClientManager {
     fn on_message(&self, client_id: u64, message: Message) {
 
         if let Message::Text(text) = message {
-
-            ////println!("received, client={} message={}", client_id, text);
-
             let mut hash_map = self.clients.lock().unwrap();
             let client: &mut Client = hash_map.get_mut(&client_id).unwrap();
             client.process_incoming_message(text);
@@ -73,12 +74,25 @@ impl ClientManager {
         let hash_map = self.clients.lock().unwrap();
         let size = hash_map.len();
 
-        //TODO: send JSON
+        let text_immutable: String = {            
+            let mut text = String::from("{");
+            json_add_key(&mut text, "type");
+            json_add_quoted(&mut text, "DISPLAY");
+            text.push_str(",");
+            json_add_key(&mut text, "data");
+            text.push_str("[");
+            text.push_str(&size.to_string());
+            text.push_str("]");
+            text.push_str("}");
 
-        ////println!("Sending broadcast: {}", size);
+            text
+        };
+
+        println!("send broadcast: {}", text_immutable);
 
         for (_id, client) in hash_map.iter() {
-            client.responder.send(Message::Text(size.to_string()));
+            let message = Message::Text(text_immutable.clone());
+            client.responder.send(message);
         }
     }
 
