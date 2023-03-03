@@ -44,11 +44,12 @@ impl Client {
 
     fn process_request_clk0(&self, packet: Packet) {
         
-        let _clk0 = packet.get_num(0);
+        let skew = packet.get_num(0);
+        println!("[{}] clock skew was: {}", self.id, skew);
 
         sleep(Duration::from_millis(100));
         let clk_server = now();
-        println!("report for clock sync: {}", clk_server - 1677710000000);
+        println!("[{}] clock sync at: {}", self.id, clk_server);
         sleep(Duration::from_millis(100));
 
         let packet: Packet = Packet::new_simple_num("CLK_REF", clk_server);
