@@ -1,4 +1,4 @@
-//#![allow(unused)]
+#![allow(unused)]
 
 use std::collections::HashMap;
 use std::thread::sleep;
@@ -6,6 +6,7 @@ use std::time::Duration;
 use simple_websockets::{Message, Responder};
 use tinyjson::JsonValue;
 use crate::utils::{json_add_key, json_add_quoted, now};
+use crate::packet::{ Packet };
 
 pub struct Client {
     pub id: u64,
@@ -29,13 +30,11 @@ impl Client {
     pub fn process_incoming_message(self: &mut Client, text: String) {
         
         self.touch();
-
-        let parsed: JsonValue = text.parse().unwrap();
-        let root_object: &HashMap<String, JsonValue> = parsed.get().unwrap();
-        let message_type = self.parse_message_type(root_object);
+        let packet = Packet::from(&text);
+        let message_type = packet.get_type();
 
         if message_type == "CLK_0" {
-            self.process_request_clk0(root_object);
+            self.process_request_clk0(packet);
         }
     }
 
@@ -43,36 +42,9 @@ impl Client {
         self.seen = now();
     }
 
-    fn parse_message_type(&self, root_object: &HashMap<String, JsonValue>) -> String {
+    fn process_request_clk0(&self, packet: Packet) {
         
-        let type_value: &JsonValue = root_object.get(&String::from("type")).unwrap();
-        if let JsonValue::String(string) = type_value {
-            return string.to_string();
-        }
-
-        return String::from("n.a.");
-    }
-
-    fn parse_message_data_int(
-        &self,
-        root_object: &HashMap<String, JsonValue>,
-        index: usize,
-    ) -> i64 {
-
-        let data_vec: &JsonValue = root_object.get(&String::from("data")).unwrap();
-        if let JsonValue::Array(vec) = data_vec {
-            let elem = &vec[index];
-            if let JsonValue::Number(num) = elem {
-                return *num as i64;
-            }
-        }
-
-        return 0;
-    }
-
-    fn process_request_clk0(&self, root_object: &HashMap<String, JsonValue>) {
-        
-        let _clk0 = self.parse_message_data_int(root_object, 0);
+        let _clk0 = packet.get_num();
 
         sleep(Duration::from_millis(100));
         let clk_server = now();
@@ -94,12 +66,12 @@ impl Client {
         response.push_str("]");
         response.push_str("}");
 
-        self.send_response(response);
+        self.send_now(response);
     }
 
-    fn send_response(&self, response: String) {
+    fn send_now(&self, text: String) {
         
-        let message = Message::Text(response);
+        let message = Message::Text(text);
         self.responder.send(message);
     }
 }
