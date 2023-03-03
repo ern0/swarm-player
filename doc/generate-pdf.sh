@@ -18,4 +18,5 @@ function gen {
 }
 
 gen design
-gen kikof
+#gen kikof
+open design.pdf

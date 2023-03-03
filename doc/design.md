@@ -49,4 +49,53 @@ Implement auto-join:
 - implement hotspot switch detection in main webapp
 
 
+### Time sync
+
+Was not planned in this milestone, 
+but finally implemented for its simplicity.
+
+The client uses [Cristian's algorithm](https://www.geeksforgeeks.org/cristians-algorithm/) to
+synchronize time to the server.
+
+<img src="cristians_algorithm.png" style="min-height: 300px; max-height: 300px;" class="fig" />
+
+The server only tells actual timestamp
+for the client's request.
+
+Test features:
+
+- the server simulates slow network,
+  by sleeping the same amount before and
+  after getting timestamp,
+- the client's timestamp can be shifted
+  to emulate clock skew.
+
 ## Milestone 2
+
+### Requirement
+
+Clients execute commands simultaneously, 
+synchronized with each other.
+
+The pre-requisite is met: 
+time synchronization is already implemented.
+
+### Server
+
+- The server receives message from external sources
+- The server adds timestamp to the message:
+  time of receipt plus official lag
+- The official lag is cca. 50..100 ms: 
+  long enough for all clients to receive it in time,
+  but short enough not to be able to hear the delay
+- The server broadcasts all messages to all clients,
+  no filtering applied in this milestone yet
+
+### Client
+
+- Receives message, adds it to a container
+- Retreives and processes item 
+  at the requested time
+- Handle overdue messages
+- Performs some simple visible action, 
+  e.g. sets background color
