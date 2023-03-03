@@ -37,12 +37,14 @@ function init_url_options() {
 function init_url_option_skew(url) {
 
 	app.opt_skew = url.searchParams.get("skew");
+
 	if (app.opt_skew == null) {
 		app.opt_skew = 0;
 	} else {
+		app.opt_skew = Math.round(app.opt_skew);
 		console.warn("TEST: skew is set to", app.opt_skew);
 	}
-
+	
 }
 
 function init_url_option_autoconnect(url) {

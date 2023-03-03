@@ -5,8 +5,8 @@ use std::thread::sleep;
 use std::time::Duration;
 use simple_websockets::{Message, Responder};
 use tinyjson::JsonValue;
-use crate::utils::{json_add_key, json_add_quoted, now};
-use crate::packet::{ Packet };
+use crate::utils::now;
+use crate::packet::Packet;
 
 pub struct Client {
     pub id: u64,
@@ -51,27 +51,14 @@ impl Client {
         println!("report for clock sync: {}", clk_server - 1677710000000);
         sleep(Duration::from_millis(100));
 
-        self.send_response_int(String::from("CLK_REF"), clk_server);
+        let packet: Packet = Packet::new_simple_num("CLK_REF", clk_server);
+        let json = packet.render_json();        
+        self.send_now(&json);
     }
 
-    fn send_response_int(&self, command: String, value: i64) {
-
-        let mut response: String = String::from("{");
-        json_add_key(&mut response, "type");
-        json_add_quoted(&mut response, &command);
-        response.push_str(",");
-        json_add_key(&mut response, "data");
-        response.push_str("[");
-        response.push_str(&value.to_string());
-        response.push_str("]");
-        response.push_str("}");
-
-        self.send_now(response);
-    }
-
-    fn send_now(&self, text: String) {
+    fn send_now(&self, text: &str) {
         
-        let message = Message::Text(text);
+        let message = Message::Text(text.to_string());
         self.responder.send(message);
     }
 }

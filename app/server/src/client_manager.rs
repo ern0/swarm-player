@@ -3,8 +3,9 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use simple_websockets::{Event, EventHub, Message, Responder};
-use crate::utils::{json_add_key, json_add_quoted, now};
+use crate::utils::now;
 use crate::client::Client;
+use crate::packet::Packet;
 
 pub struct ClientManager {
     event_hub: EventHub,
@@ -67,26 +68,15 @@ impl ClientManager {
             let client: &mut Client = hash_map.get_mut(&client_id).unwrap();
             client.process_incoming_message(text);
         }
+
     }
 
     pub fn broadcast(&self) {
 
         let hash_map = self.clients.lock().unwrap();
         let size = hash_map.len();
-
-        let text_immutable: String = {            
-            let mut text = String::from("{");
-            json_add_key(&mut text, "type");
-            json_add_quoted(&mut text, "DISPLAY");
-            text.push_str(",");
-            json_add_key(&mut text, "data");
-            text.push_str("[");
-            text.push_str(&size.to_string());
-            text.push_str("]");
-            text.push_str("}");
-
-            text
-        };
+        let packet = Packet::new_simple_num("DISPLAY", size as i64);
+        let text_immutable: String = packet.render_json();
 
         println!("send broadcast: {}", text_immutable);
 
