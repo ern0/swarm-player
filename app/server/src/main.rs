@@ -21,14 +21,7 @@ pub fn main() {
     let client_manager = ClientManager::new(event_hub);
     client_manager.start();
 
-    // let mut counter = 0;
-    // loop {        
-    //     let mut packet = Packet::new_simple_num("DISPLAY", counter);
-    //     packet.set_num(0, counter);
-    //     client_manager.broadcast(&packet);
-    //     counter += 1;
-
-    //     sleep(Duration::from_secs(1));
-    // }
-
+    loop {
+        sleep(Duration::from_secs(1));
+    }
 }
