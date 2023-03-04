@@ -48,7 +48,7 @@ impl ClientManager {
 
     fn on_connect(&self, responder: Responder, client_id: u64) {
 
-        println!("connected, id={}", client_id);
+        println!("[{}] connected", client_id);
 
         let client = Client::new(client_id, responder);
         self.clients.lock().unwrap().insert(client.id, client);
@@ -56,7 +56,7 @@ impl ClientManager {
 
     fn on_disconnect(&self, client_id: u64) {
 
-        println!("disconnected, id={}", client_id);
+        println!("[{}] disconnected", client_id);
 
         self.clients.lock().unwrap().remove(&client_id);
     }
@@ -71,15 +71,12 @@ impl ClientManager {
 
     }
 
-    pub fn broadcast(&self) {
+    pub fn broadcast(&self, packet: &Packet) {
+
+        let text_immutable: String = packet.render_json();
+        println!("send broadcast: {}", packet.get_str(0));
 
         let hash_map = self.clients.lock().unwrap();
-        let size = hash_map.len();
-        let packet = Packet::new_simple_num("DISPLAY", size as i64);
-        let text_immutable: String = packet.render_json();
-
-        println!("send broadcast: {}", text_immutable);
-
         for (_id, client) in hash_map.iter() {
             let message = Message::Text(text_immutable.clone());
             client.responder.send(message);

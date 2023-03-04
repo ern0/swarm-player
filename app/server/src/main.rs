@@ -1,13 +1,16 @@
+#![allow(unused)]
+
 mod utils;
 mod client_manager;
 mod client;
 mod packet;
 
-use client_manager::ClientManager;
 use simple_websockets;
 use std::sync::Arc;
 use std::thread::{sleep, spawn};
 use std::time::Duration;
+use crate::client_manager::ClientManager;
+use crate::packet::Packet;
 
 pub fn main() {
     
@@ -20,8 +23,13 @@ pub fn main() {
 
     spawn(move || cm1.run());
 
-    loop {
-        cm2.broadcast();
+    let mut counter = 0;
+    let mut packet = Packet::new_simple_num("DISPLAY", counter);    
+    loop {        
+        packet.set_num(0, counter);
+        cm2.broadcast(&packet);
+        counter += 1;
+
         sleep(Duration::from_secs(1));
     }
 }
