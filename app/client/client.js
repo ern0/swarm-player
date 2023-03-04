@@ -68,6 +68,12 @@ function init_bind_buttons() {
 	elm("abort").onclick = handle_button_abort_or_disconnect;
 	elm("disconnect").onclick = handle_button_abort_or_disconnect;
 
+	elm("cmd_red").onclick = handle_button_cmd;
+	elm("cmd_green").onclick = handle_button_cmd;
+	elm("cmd_blue").onclick = handle_button_cmd;
+	elm("cmd_yellow").onclick = handle_button_cmd;
+	elm("cmd_white").onclick = handle_button_cmd;
+
 }
 
 function elm(id) {
@@ -178,6 +184,11 @@ function handle_button_abort_or_disconnect() {
 	intent("offline");
 	page("bye");
 
+}
+
+function handle_button_cmd() {
+	var color = this.id.split("_")[1];
+	send("COLOR", color);
 }
 
 function send(signature, args) {	
