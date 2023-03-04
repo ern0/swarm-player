@@ -1,17 +1,13 @@
 #![allow(unused)]
 
-use std::collections::HashMap;
 use std::thread::sleep;
-use std::sync::Arc;
-use std::sync::mpsc;
 use std::time::Duration;
 use simple_websockets::{Message, Responder};
-use tinyjson::JsonValue;
-use crate::utils::now;
-use crate::client_manager::ClientManager;
+use crate::utils::{now, ClientList};
 use crate::packet::Packet;
 
 pub struct Client {
+    pub clients: ClientList,
     pub id: u64,
     pub responder: Responder,
     pub seen: i64,
@@ -20,9 +16,10 @@ pub struct Client {
 
 impl Client {
 
-    pub fn new(id: u64, responder: Responder) -> Self {
+    pub fn new(clients: ClientList, id: u64, responder: Responder) -> Self {
 
         return Client {
+            clients: clients,
             id: id,
             responder: responder,
             seen: 0,
@@ -69,6 +66,22 @@ impl Client {
 
         let color = packet.get_str(0);
         println!("[{}] color: {}", self.id, color);
+
+        self.broadcast(packet);
+    }
+
+    fn broadcast(&self, packet: &Packet) {
+
+        println!("[{}] send broadcast: {}", self.id, packet.get_str(0));
+
+        let text_immutable: String = packet.render_json();
+        println!("---------------c0");
+        let hash_map = self.clients.lock().unwrap();
+        println!("---------------c1");
+        for (_id, client) in hash_map.iter() {
+            let message = Message::Text(text_immutable.clone());
+            client.responder.send(message);
+        }
     }
 
 }

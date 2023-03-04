@@ -1,6 +1,10 @@
+use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::{Arc, Mutex};
+use crate::client::Client;
 
 pub const UNDEF: i64 = i64::MAX;
+pub type ClientList = Arc<Mutex<HashMap<u64, Client>>>;
 
 pub fn now() -> i64 {
     return SystemTime::now()
