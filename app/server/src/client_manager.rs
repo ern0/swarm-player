@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 use std::thread::{sleep, spawn};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 use simple_websockets::{Event, Message, Responder};
 use crate::utils::ClientList;
 use crate::client::Client;
@@ -18,7 +18,7 @@ impl ClientManager {
     pub fn new() -> Self {
 
         return ClientManager {
-            clients: Arc::new(Mutex::new(HashMap::new())),
+            clients: Arc::new(RwLock::new(HashMap::new())),
         };
     }
 
@@ -38,7 +38,9 @@ impl ClientManager {
         let text_immutable: String = packet.render_json();
         println!("[mgr] send broadcast: {}", text_immutable);
 
-        let hash_map = self.clients.lock().unwrap();
+        println!("---------------cm-41-bc");
+        let hash_map = self.clients.read().unwrap();
+        println!("---------------cm-43");
         for (_id, client) in hash_map.iter() {
             let message = Message::Text(text_immutable.clone());
             client.responder.send(message);
@@ -70,22 +72,29 @@ impl ClientManager {
 
         println!("[{}] connected", client_id);
 
-        let cl = self.clients.clone();
-        let client = Client::new(cl, client_id, responder);
-        self.clients.lock().unwrap().insert(client.id, client);
+        let arc = self.clients.clone();
+        let client = Client::new(arc, client_id, responder);
+        println!("---------------cm-77-conn");
+        self.clients.write().unwrap().insert(client.id, client);
+        println!("---------------cm-79");
+
     }
 
     fn on_disconnect(&self, client_id: u64) {
 
         println!("[{}] disconnected", client_id);
 
-        self.clients.lock().unwrap().remove(&client_id);
+        println!("---------------cm-87-disconn");
+        self.clients.write().unwrap().remove(&client_id);
+        println!("---------------cm-89");
     }
 
     fn on_message(&self, client_id: u64, message: Message) {
 
         if let Message::Text(text) = message {
-            let mut hash_map = self.clients.lock().unwrap();
+            println!("---------------cm-95-msg");
+            let mut hash_map = self.clients.write().unwrap();
+            println!("---------------cm-99");
             let client: &mut Client = hash_map.get_mut(&client_id).unwrap();
             client.process_incoming_message(text);
         }

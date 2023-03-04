@@ -76,7 +76,7 @@ impl Client {
 
         let text_immutable: String = packet.render_json();
         println!("---------------c0");
-        let hash_map = self.clients.lock().unwrap();
+        let hash_map = self.clients.read().unwrap();
         println!("---------------c1");
         for (_id, client) in hash_map.iter() {
             let message = Message::Text(text_immutable.clone());
