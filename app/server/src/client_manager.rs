@@ -2,31 +2,30 @@
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc;
 use simple_websockets::{Event, EventHub, Message, Responder};
 use crate::utils::now;
 use crate::client::Client;
 use crate::packet::Packet;
 
 pub struct ClientManager {
-    event_hub: EventHub,
     clients: Mutex<HashMap<u64, Client>>,
 }
 
 impl ClientManager {
 
-    pub fn new(event_hub: EventHub) -> Self {
+    pub fn new() -> Self {
 
         return ClientManager {
-            event_hub: event_hub,
             clients: Mutex::new(HashMap::new()),
         };
     }
 
-    pub fn run(&self) {
+    pub fn run_event_hub(&self, event_hub: &EventHub) {
 
         loop {
 
-            match self.event_hub.poll_event() {
+            match event_hub.poll_event() {
 
                 Event::Connect(client_id, responder) => {
                     self.on_connect(responder, client_id);
@@ -71,11 +70,19 @@ impl ClientManager {
 
     }
 
+    pub fn run_broadcast(&self, receiver: &mpsc::Receiver<Packet>) {
+
+        for packet in receiver.iter() {
+            self.broadcast(&packet);
+        }
+
+    }
+
     pub fn broadcast(&self, packet: &Packet) {
 
-        let text_immutable: String = packet.render_json();
         println!("send broadcast: {}", packet.get_str(0));
 
+        let text_immutable: String = packet.render_json();
         let hash_map = self.clients.lock().unwrap();
         for (_id, client) in hash_map.iter() {
             let message = Message::Text(text_immutable.clone());
