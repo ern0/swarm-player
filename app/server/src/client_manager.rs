@@ -70,15 +70,19 @@ impl ClientManager {
 
     }
 
-    pub fn run_broadcast(&self, receiver: &mpsc::Receiver<Packet>) {
+    pub fn broadcast(&self, packet: &Packet) {
+        //sender.send(packet);
+    }
 
-        for packet in receiver.iter() {
-            self.broadcast(&packet);
-        }
+    pub fn run_broadcast(&self) {
+
+        // for packet in receiver.iter() {
+        //     self.perform_broadcast(&packet);
+        // }
 
     }
 
-    pub fn broadcast(&self, packet: &Packet) {
+    fn perform_broadcast(&self, packet: &Packet) {
 
         println!("send broadcast: {}", packet.get_str(0));
 
