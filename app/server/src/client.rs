@@ -27,15 +27,12 @@ impl Client {
         };
     }
 
-    pub fn process_incoming_message(self: &mut Client, text: String) {
+    pub fn process_incoming_message(self: &mut Client, packet: &Packet) {
         
         self.seen = now();
-        let packet = Packet::from(&text);
-        println!("[{}] message: {}", self.id, text);
 
         match packet.get_type().as_str() {
             "CLK_0" => self.process_request_clk0(&packet),
-            "COLOR" => self.process_request_color(&packet),
             _ => {},
         }
     }
@@ -60,28 +57,6 @@ impl Client {
         let packet: Packet = Packet::new_simple_num("CLK_REF", clk_server);
         let json = packet.render_json();        
         self.send_now(&json);
-    }
-
-    fn process_request_color(&self, packet: &Packet) {
-
-        let color = packet.get_str(0);
-        println!("[{}] color: {}", self.id, color);
-
-        self.broadcast(packet);
-    }
-
-    fn broadcast(&self, packet: &Packet) {
-
-        println!("[{}] send broadcast: {}", self.id, packet.get_str(0));
-
-        let text_immutable: String = packet.render_json();
-        println!("---------------c0");
-        let hash_map = self.clients.read().unwrap();
-        println!("---------------c1");
-        for (_id, client) in hash_map.iter() {
-            let message = Message::Text(text_immutable.clone());
-            client.responder.send(message);
-        }
     }
 
 }

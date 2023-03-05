@@ -2,6 +2,7 @@
 	<head>
 		<style>
 			button { margin-bottom: 4px; }
+			#control { padding: 12px;}
 		</style>
 		<script src="client.js"></script>
 	</head>
@@ -19,16 +20,17 @@
 			<button id="disconnect"> disconnect </button>
 
 			<div id="control">
-				<hr />
-				<button style="background: red; color: white;" id="cmd_red"> red </button>
-				<br />
-				<button style="background: green; color: white;" id="cmd_green"> green </button>
-				<br />
-				<button style="background: blue; color: white;" id="cmd_blue"> blue </button>
-				<br />
-				<button style="background: yellow; color: black;" id="cmd_yellow"> yellow </button>
-				<br />
-				<button style="background: white; color: black;" id="cmd_white"> white </button>
+				<div style="background: white; padding: 4px;">
+					<button style="background: red; color: white;" id="cmd_red"> red </button>
+					<br />
+					<button style="background: green; color: white;" id="cmd_green"> green </button>
+					<br />
+					<button style="background: blue; color: white;" id="cmd_blue"> blue </button>
+					<br />
+					<button style="background: yellow; color: black;" id="cmd_yellow"> yellow </button>
+					<br />
+					<button style="background: gray; color: white;" id="cmd_gray"> gray </button>
+				</div>
 			</div>
 
 		</div>
