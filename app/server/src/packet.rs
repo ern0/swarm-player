@@ -5,6 +5,8 @@ use std::vec::Vec;
 use tinyjson::JsonValue;
 use crate::utils::{UNDEF, STAMP_OFFSET_MS};
 
+pub enum SyncMode { SyncData, AsyncCommand }
+
 type JsonObj = HashMap<String, JsonValue>;
 
 pub struct Packet {
@@ -47,6 +49,14 @@ impl Packet {
 
     pub fn get_type(&self) -> &String {
         return &self.packet_type;
+    }
+
+    pub fn get_sync_mode(&self) -> SyncMode {
+        if (self.packet_type == "CLK_REF") {
+            return SyncMode::AsyncCommand;
+        } else {
+            return SyncMode::SyncData;
+        }
     }
 
     pub fn set_num(&mut self, index: usize, value: i64) {
@@ -98,12 +108,19 @@ impl Packet {
         
         json.push_key("type");
         json.push_quoted(self.get_type());
-
+        
         if stamp != UNDEF {
             json.push_str(",");
             json.push_key("stamp");
-            let offseted = stamp + STAMP_OFFSET_MS;
-            json.push_quoted(&offseted.to_string());
+            match self.get_sync_mode() {
+                SyncMode::SyncData => {
+                    let offseted = stamp + STAMP_OFFSET_MS;
+                    json.push_str(&offseted.to_string());
+                },
+                SyncMode::AsyncCommand => {
+                    json.push_str(&0.to_string());
+                },
+            }
         }
         
         json.push_str(",");
@@ -216,15 +233,17 @@ fn parse_data(root_object: &JsonObj, num_vec: &mut Vec<i64>, str_vec: &mut Vec<S
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::packet::Packet;
+    use crate::packet::{Packet, SyncMode};
+    use crate::utils::UNDEF;
 
     const JSON_BASIC_STR: &str = r#"{"type":"TYP","data":["VAL"]}"#;
     const JSON_BASIC_NUM: &str = r#"{"type":"BEAST","data":[666]}"#;
     const JSON_MULTI: &str = r#"{"type":"T","data":[10,11,12]}"#;
     const JSON_MIXED: &str = r#"{"type":"T","data":[0,"one",2]}"#;
+    const JSON_ASYNC_CMD: &str = r#"{"type":"CLK_REF","data":[]}"#;
+    const JSON_SYNC_DATA: &str = r#"{"type":"T","data":[]}"#;
 
     #[test]
     fn parse_simple_type() {
@@ -287,6 +306,18 @@ mod tests {
         packet.set_num(2, 2);
         let json = packet.render_json(UNDEF);
         assert_eq!(json, JSON_MIXED);
+    }
+    #[test]
+    fn create_async_cmd() {
+        let packet = Packet::from(&JSON_ASYNC_CMD.to_string());
+        let sync_mode = packet.get_sync_mode();
+        assert!(matches!(sync_mode, SyncMode::AsyncCommand));
+    }
+    #[test]
+    fn create_sync_data() {
+        let packet = Packet::from(&JSON_SYNC_DATA.to_string());
+        let sync_mode = packet.get_sync_mode();
+        assert!(matches!(sync_mode, SyncMode::SyncData));
     }
 
 }

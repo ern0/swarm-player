@@ -158,14 +158,10 @@ function handle_socket_message(event) {
 
 	var packet = JSON.parse(event.data);
 
-	console.log(event.data);  //TODO: check message skip issue
-
-	if (packet.type == "CLK_REF") {
-		clock_sync_eval(packet.data[0]);
+	if (packet.stamp == 0) {
+		process_packet(packet);
 		return;
 	}
-
-	//TODO: naive implementation
 
 	var now = get_clock();
 	var action = packet.stamp;
@@ -173,11 +169,16 @@ function handle_socket_message(event) {
 	if (delay < 1) delay = 1;
 
 	setTimeout(function() {
-		if (packet.type == "DISPLAY") display(packet.data[0]);
-		if (packet.type == "COLOR") set_color(packet.data[0]);
-		//...
+		process_packet(packet);
 	}, delay);
 
+}
+
+function process_packet(packet) {
+	if (packet.type == "CLK_REF") clock_sync_eval(packet.data[0]);
+	if (packet.type == "DISPLAY") display(packet.data[0]);
+	if (packet.type == "COLOR") set_color(packet.data[0]);
+	//...
 }
 
 function handle_socket_close(event) {
