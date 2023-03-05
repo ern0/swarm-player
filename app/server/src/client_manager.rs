@@ -1,4 +1,4 @@
-//#![allow(unused)]
+#![allow(unused)]
 
 use std::collections::HashMap;
 use std::time::Duration;
@@ -107,6 +107,7 @@ impl ClientManager {
     }
 
     fn process_request_color(&self, packet: &Packet) {
+
         let _color = packet.get_str(0);
         self.broadcast(packet);
     }
@@ -121,7 +122,7 @@ impl ClientManager {
             self.broadcast(&packet);
             counter += 1;
 
-            sleep(Duration::from_secs(1));
+            sleep(Duration::from_secs(100));  // TODO: revisit this function
         }
 
     }    
