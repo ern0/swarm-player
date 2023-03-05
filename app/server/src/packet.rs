@@ -1,4 +1,4 @@
-#![allow(unused)]
+//#![allow(unused)]
 
 use std::collections::HashMap;
 use std::vec::Vec;
@@ -16,6 +16,7 @@ pub struct Packet {
 }
 
 impl Packet {
+
     pub fn new() -> Self {
 
         return Packet {
@@ -34,6 +35,7 @@ impl Packet {
         return packet;
     }
 
+    #[allow(dead_code)]
     pub fn new_simple_str(cmd: &str, parm: &str) -> Self {
 
         let mut packet = Packet::new();
@@ -52,7 +54,7 @@ impl Packet {
     }
 
     pub fn get_sync_mode(&self) -> SyncMode {
-        if (self.packet_type == "CLK_REF") {
+        if self.packet_type == "CLK_REF" {
             return SyncMode::AsyncCommand;
         } else {
             return SyncMode::SyncData;
@@ -71,6 +73,7 @@ impl Packet {
 
     }
 
+    #[allow(dead_code)]
     pub fn set_str(&mut self, index: usize, value: &str) {
 
         if self.data_as_num.len() == index {
@@ -87,7 +90,7 @@ impl Packet {
 
         let num_value = self.data_as_num[index];
 
-        if (num_value == UNDEF) {
+        if num_value == UNDEF {
             panic!(
                 "attempt to read string as number, type=\"{}\" value=\"{}\"", 
                 &self.get_type(),                

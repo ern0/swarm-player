@@ -1,7 +1,5 @@
-#![allow(unused)]
+//#![allow(unused)]
 
-use std::thread::sleep;
-use std::time::Duration;
 use simple_websockets::{Message, Responder};
 use crate::utils::{now, ClientList};
 use crate::packet::Packet;
@@ -51,8 +49,8 @@ impl Client {
 
         let clk_server = now();
         println!("[{}] clock sync at: {}", self.id, clk_server);
-
         let packet: Packet = Packet::new_simple_num("CLK_REF", clk_server);
+
         let json = packet.render_json(clk_server);        
         self.send_now(&json);
     }

@@ -1,4 +1,4 @@
-#![allow(unused)]
+//#![allow(unused)]
 
 use std::collections::HashMap;
 use std::time::Duration;
@@ -121,7 +121,7 @@ impl ClientManager {
             self.broadcast(&packet);
             counter += 1;
 
-            sleep(Duration::from_secs(100));
+            sleep(Duration::from_secs(1));
         }
 
     }    
