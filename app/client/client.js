@@ -1,4 +1,4 @@
-SERVER_URL = "ws://127.0.0.1:8080/";
+SERVER_URL = "ws://192.168.1.3:8080/";
 
 document.addEventListener("DOMContentLoaded", main);
 
