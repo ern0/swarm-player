@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::vec::Vec;
 use tinyjson::JsonValue;
-use crate::utils::UNDEF;
+use crate::utils::{UNDEF, STAMP_OFFSET_MS};
 
 type JsonObj = HashMap<String, JsonValue>;
 
@@ -11,7 +11,6 @@ pub struct Packet {
     packet_type: String,
     data_as_num: Vec<i64>,
     data_as_str: Vec<String>,
-    stamp: i64,
 }
 
 impl Packet {
@@ -21,7 +20,6 @@ impl Packet {
             packet_type: String::new(),
             data_as_num: Vec::new(),
             data_as_str: Vec::new(),
-            stamp: 0,
         };
     }
 
@@ -94,15 +92,24 @@ impl Packet {
         return &self.data_as_str[index];
     }
 
-    pub fn render_json(&self) -> String {
+    pub fn render_json(&self, stamp: i64) -> String {
 
         let mut json: String = String::from("{");
+        
         json.push_key("type");
         json.push_quoted(self.get_type());
+
+        if stamp != UNDEF {
+            json.push_str(",");
+            json.push_key("stamp");
+            let offseted = stamp + STAMP_OFFSET_MS;
+            json.push_quoted(&offseted.to_string());
+        }
+        
         json.push_str(",");
         json.push_key("data");
+        
         json.push_str("[");
-
         let mut first = true;
         for index in 0 .. self.data_as_num.len() {
 
@@ -121,7 +128,6 @@ impl Packet {
             }          
 
         }
-
         json.push_str("]");
         json.push_str("}");
 
@@ -172,7 +178,6 @@ impl From<&String> for Packet {
             packet_type: packet_type,
             data_as_num: num_vec,
             data_as_str: str_vec,
-            stamp: 0,
         };
     }
 }
@@ -266,13 +271,13 @@ mod tests {
     #[test]
     fn create_simple_str() {
         let mut packet = Packet::new_simple_str("TYP","VAL");
-        let json = packet.render_json();
+        let json = packet.render_json(UNDEF);
         assert_eq!(json, JSON_BASIC_STR);
     }
     #[test]
     fn create_simple_num() {
         let mut packet = Packet::new_simple_num("BEAST", 666);
-        let json = packet.render_json();
+        let json = packet.render_json(UNDEF);
         assert_eq!(json, JSON_BASIC_NUM);
     }
     #[test]
@@ -280,7 +285,7 @@ mod tests {
         let mut packet = Packet::new_simple_num("T", 0);
         packet.set_str(1, "one");
         packet.set_num(2, 2);
-        let json = packet.render_json();
+        let json = packet.render_json(UNDEF);
         assert_eq!(json, JSON_MIXED);
     }
 
