@@ -34,7 +34,8 @@ impl ClientManager {
 
     fn broadcast(&self, packet: &Packet) {
 
-        let text_immutable: String = packet.render_json(now());
+        let packet_stamp = now();
+        let text_immutable: String = packet.render_json(packet_stamp);
         println!("<mgr> broadcast: {}", text_immutable);
 
         let hash_map = self.clients.read().unwrap();
@@ -42,6 +43,7 @@ impl ClientManager {
             let message = Message::Text(text_immutable.clone());
             client.responder.send(message);
         }
+        
     }
 
     pub fn run_event_hub(&self) {
