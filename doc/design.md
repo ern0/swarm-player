@@ -72,7 +72,7 @@ Test features:
 
 ## Milestone 2
 
-### Requirement
+### Requirements
 
 Clients execute commands simultaneously, 
 synchronized with each other.
@@ -99,3 +99,173 @@ time synchronization is already implemented.
 - Handle overdue messages
 - Performs some simple visible action, 
   e.g. sets background color
+
+## Milestone 3: The channel concept
+
+The Player should request the server
+to split up clients to *Channels*, which
+are playing different things.
+
+### All about Clients
+
+We can make the following observations about the clients:
+
+- There is a *Master Client* 
+  with the audio output is connected to the main amp.
+  The other Clients,
+  *Public Clients* are the mobile devices of the public.
+- There will be a guaranteed set of Public Clients
+  (some own devices, friends' devices),
+  5-8 such devices are expected.
+  We can count with additional 15-40 devices from public,
+  so broad estimate is 5-50 Public Clients.
+  The infrastucture should handle 100 devices.
+  As a realistic value, we expect 20-30 Public Clients.
+- Some Public Clients may not be audible:
+  their volume is set too low, even muted,
+  they are at acoustically wrong place,
+  they are outside of the performance room.
+
+### The problem is: addressing
+
+The question is: what should Public Clients play?
+How should they *addressed*?
+
+The two ends of the scale are that
+either all clients execute the same commands,
+or all execute different ones.
+
+Exectuting same thing on all the Public Clients is a safe game.
+There's no problem with the number of clients,
+with joining and leaving ones - but as a show, it's boring.
+
+Executing unique commands on all clients has several issues:
+
+- Some Public Clients will be disconnected
+  in the middle of the show.
+  This may cause some gap in the song.
+- Some new Public Clients will join
+  in the middle of the show.
+  It's not as serious problem, but it's hard to
+  add them instantly to the show.
+- It's hard to write a song for unknown number of clients.
+
+The solution is somewhere halfway,
+using limited number of *Channels*,
+which the clients can be assigned dynamically.
+
+### Addressing modes
+
+Currently two addressing schemes are defined:
+
+- *Broadcast*: send command to all clients (trivial),
+- *Channel*: send command to Clients belonging to the specified Channel
+  (explained below).
+
+Other addressing modes are expected in the future, e.g. location-based,
+individual etc.
+
+### Channel addressing overview
+
+- At any point of the show,
+  the *Player* can set the number of *Public Channels*.
+  Upon this request, 
+  the server rearranges Public Clients equally 
+  into Public Channels.
+- There's a special *Master Channel*,
+  which is always exists, can't be deleted,
+  only the *Master Client* is assigned to it.
+  So the Player can address it as the same way as Public Channels.
+- The Player addresses all commands to a single Channel,
+  or more Channels.
+- The server can rearrange Clients amongst the Channels
+  during the show,
+  as clients detach or new ones attach.
+- There are limits for maximum number of Channels and
+  minimum number of Clients per Channel.
+- A Client can be assigned to multiple Channels.
+  This is useful when there're too few clients.
+- Public Channels can be assigned to Master Client.
+  So, in extreme case, 
+  the Master Client itself, 
+  without any Public Client,
+  is able to run the whole show.
+
+### Message types
+
+This is a short intermission about message types.
+There are the following types:
+
+- Client-server technical messages:
+  the client sends a request, the server responds to it.
+  There's one such message pair is implemented:
+  the *Time Synchronization* reqeuest-reply.
+  Taxonomically client socket connect and disconnect
+  events belong to this message type.
+- Player content messages:
+  the Player sends a channel or broadcast message, 
+  the server sends it to the addressed clients, 
+  which execute it synchronized.
+  There's one message implemented if this type: 
+  *Color Change*
+  (the implementation does not contain addressing,
+  the server broadcasts it to all clients).
+- Player control messages:
+  the Player sends a control request to the server,
+  which executes it immediately.
+  *Set Channel Number* is such message,
+  not implemented yet.
+
+### Server requirements
+
+Channel addressing requirements for the server:
+
+- The server can split Clients into Channels.
+- One client may assigned to more Channels.
+  This might happen when the
+  number of Clients is low.
+- When a new Client connects, the server
+  assigns it to a channel.
+- When a new Client connects, and it's
+  added to a Channel, 
+  another Client,
+  which is assigned to this Channel and also to another one,
+  might be removed from this Channel.
+- The maximum number of Channels is 4 
+  (subject to change).
+- Each Channel should have at least 3 Clients assigned to 
+  (subject to change).
+- When a Client disconnects, 
+  thus removes from a Channel,
+  the server may
+  move (remove from another Channel and assign to this)
+  or add (keep it on its actual Channel, and also assign to this)
+  one Client to the Channel,
+  in order to keep the Channels in balance.
+- When a synchronized command arrives from the Player,
+  the server adds a timestamp to it (already implemented),
+  and resolves the address (now: Channel),
+  translating it to the list of Clients.
+
+### Player requirements
+
+Minimal player functions should be implemented 
+in order to test server channel addressing functions.
+
+The Player should send
+- Set Channels command,
+- a prototype Channel command (e.g. Set Color).
+
+---
+
+## Notices
+
+### Song
+
+- Sonyi.mod
+- Banana song
+
+### Sound engine
+
+- The easy way: use [tone.js](https://tonejs.github.io/)
+- Hard way: native [webaudio](https://webaudioapi.com/book/)
