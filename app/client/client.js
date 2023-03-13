@@ -6,10 +6,79 @@ document.addEventListener("DOMContentLoaded", main);
 
 function main() {
 
-	init_app_props();
+	app = {};
 	init_url_options();
+
+	if (app.opt_autoconnect) {
+		check_update_retry(first_update_proc);
+	} else {
+		startup();
+	}
+
+}
+
+function check_update_retry(callback) {
+
+	app.update_callback = callback;
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "client.js");
+	xhr.send(null);
+
+	xhr.onreadystatechange = check_update_ajax_handler;
+
+}
+
+function check_update_ajax_handler() {
+
+	var DONE = 4;
+	var OK = 200;
+
+	if (this.readyState != DONE) return;
+
+	if (this.status == OK) {
+		app.update_callback(this.responseText);
+		return;
+	}
+
+	console.log('AJAX error: ' + this.status);
+
+	setTimeout(function() {
+		check_update_retry(app.update_callback);
+	}, 200);
+
+}
+
+function first_update_proc(response) {
+
+	app.update_hash = cyrb53(response);
+	startup();
+
+}
+
+function cyrb53(str, seed = 0) {
+
+  var h1 = 0xdeadbeef ^ seed;
+	var h2 = 0x41c6ce57 ^ seed;
+
+  for (var i = 0; i < str.length; i++) {
+    var ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+
+function startup() {
+
+	init_app_props();
 	clock_sync_reset();
 	init_bind_buttons();
+	init_auto_update();
 	reset_stat();
 
 	app.intent = "offline";
@@ -23,7 +92,6 @@ function main() {
 
 function init_app_props() {
 
-	app = {};
 	app.websocket = null;
 	app.heartbeat = null;
 
@@ -87,6 +155,34 @@ function init_bind_buttons() {
 	elm("cmd_blue").onclick = handle_button_cmd;
 	elm("cmd_yellow").onclick = handle_button_cmd;
 	elm("cmd_gray").onclick = handle_button_cmd;
+
+}
+
+function init_auto_update() {
+
+	if (!app.opt_autoconnect) return;
+
+	rescheduler_auto_update();
+}
+
+function rescheduler_auto_update() {
+
+	setTimeout(function () {
+		check_update_retry(auto_update_proc);
+	}, 200);
+
+}
+
+
+function auto_update_proc(response) {
+
+	if (app.update_hash == cyrb53(response)) {
+		rescheduler_auto_update();
+		return;
+	}
+
+	console.log("---- update ----");
+	location.reload();
 
 }
 
@@ -352,5 +448,5 @@ function clock_sync_reschedule() {
 	sleep_duration_ms += Math.random() * (sleep_duration_ms / 10);
 
 	setTimeout(clock_sync_start, sleep_duration_ms);
-	
+
 }

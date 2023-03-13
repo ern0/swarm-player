@@ -122,7 +122,7 @@ Implement Development comfort functions.
 
 ### Client
 
-- Automatic reload on connect
+- Automatic reload on update
 - Minimal sound playing capability
 - Avoid screensaver
 
