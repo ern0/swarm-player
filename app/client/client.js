@@ -359,13 +359,12 @@ function flash_color(color)
 
 function init_beep()
 {
-
 	try {
 		app.audio_context = new AudioContext();
+		app.frequency = 500 + (Math.random() * 500);
 	} catch (e) {
 		app.audio_context = null;
 	}
-
 }
 
 function beep()
@@ -375,7 +374,7 @@ function beep()
 
 	app.oscillator = app.audio_context.createOscillator();
 	app.oscillator.type = "square";
-	app.oscillator.frequency.value = 600;
+	app.oscillator.frequency.value = app.frequency;
 	app.oscillator.connect(app.audio_context.destination);
 
 	app.oscillator.start();
