@@ -122,14 +122,16 @@ Implement Development comfort functions.
 
 ### Client
 
-- Automatic reload on update
 - Minimal sound playing capability
 - Avoid screensaver
+- Automatic reload on update
+- Logging to server
 
 
 ### Server
 
 - Implement minimal sound command
+- Implement logger
 - Collect and provide some stats, fucusing on client lags
 
 

@@ -285,7 +285,11 @@ function auto_update_proc(response)
 	}
 
 	console.log("---- update ----");
-	location.reload();
+	document.body.innerHTML = "<h1><font color=\"white\">UPDATING</font></h1>";
+	document.body.style.background = "black";
+	setTimeout(function() {
+		location.reload();
+	}, 1000);
 
 }
 
@@ -359,17 +363,12 @@ function flash_color(color)
 
 function init_beep()
 {
-	try {
-		app.audio_context = new AudioContext();
-		app.frequency = 500 + (Math.random() * 500);
-	} catch (e) {
-		app.audio_context = null;
-	}
+	app.frequency = 500 + (Math.random() * 500);
 }
 
 function beep()
 {
-	if (app.audio_context == null) init_beep();
+	app.audio_context = new AudioContext();
 	if (app.audio_context == null) return;
 
 	app.oscillator = app.audio_context.createOscillator();
