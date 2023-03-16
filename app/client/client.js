@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", main);
 
 function main()
 {
-
 	app = {};
 	init_awake();
 	init_options();
@@ -19,25 +18,30 @@ function main()
 	} else {
 		startup();
 	}
+}
 
+function local_log(message) {
+	console.log(message);
 }
 
 function init_awake()
 {
 	if (is_dev_machine()) return;
 
-	if (init_awake_wakelock()) return;
-	init_awake_video();
+	if (init_awake_wakelock()) {
+		local_log("awake mode: wakelock");
+		return;
+	}
 
+	init_awake_video();
+	local_log("awake mode: video");
 }
 
 function init_awake_wakelock()
 {
-
 	if ((typeof navigator.wakeLock) == "undefined") {
 		return false;
 	}
-
 	navigator.wakeLock.request("screen");
 
 	return true;
@@ -45,17 +49,14 @@ function init_awake_wakelock()
 
 function set_video_data(elm, fmt, data)
 {
-
 	var source = document.createElement("source");
 	source.src = data;
 	source.type = 'video/' + fmt;
 	elm.appendChild(source);
-
 }
 
 function init_awake_video()
 {
-
 	vid = elm("awake");
 	vid.setAttribute("loop", "");
 	vid.setAttribute("muted", true);
@@ -70,20 +71,17 @@ function init_awake_video()
 	set_video_data(vid, "mp4", mp4_data);
 
 	vid.play();
-
 }
 
 function check_update_retry(callback)
 {
-
 	app.update_callback = callback;
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "client.js");
+	xhr.open("GET", "/");
 	xhr.send(null);
 
 	xhr.onreadystatechange = check_update_ajax_handler;
-
 }
 
 function check_update_ajax_handler()
@@ -98,12 +96,11 @@ function check_update_ajax_handler()
 		return;
 	}
 
-	console.log('AJAX error: ' + this.status);
+	local_log("AJAX error: " + this.status);
 
 	setTimeout(function () {
 		check_update_retry(app.update_callback);
 	}, 200);
-
 }
 
 function first_update_proc(response)
@@ -148,79 +145,69 @@ function startup()
 
 function init_app_props()
 {
-
 	app.websocket = null;
 	app.heartbeat = null;
 	app.color_timeout = null;
-
 }
 
 function init_options()
 {
-
 	init_const_options();
 
 	var url = new URL(document.location.href);
 	init_url_connection(url);
 	init_url_control_station(url);
-
 }
 
 function init_const_options()
 {
-
 	app.opt_autoconnect = AUTOCONNECT;
 	if (app.opt_autoconnect) {
-		console.warn("TEST: autoconnect is on");
+		local_log("autoconnect is on");
 	}
 
 	app.opt_skew = CLOCK_SKEW;
 	if (app.opt_autoconnect) {
-		console.warn("TEST: skew is", app.opt_skew, "ms");
+		local_log("skew value is " + app.opt_skew + " ms");
 	}
-
 }
 
 function init_url_connection(url)
 {
-
 	var protocol = url.protocol.replace("http", "ws");
-
 	app.server_url = protocol + "//";
 	app.server_url += url.hostname;
-	app.server_url += ":" + WEBSOCKET_PORT;
-
+	if (!protocol.startsWith("wss")) {
+		app.server_url += ":" + WEBSOCKET_PORT;
+	}
+	app.server_url += "/api";
 }
 
 function init_url_control_station(url)
 {
+	app.opt_control_station = false;
 
 	if (is_dev_machine()) {
-
-		app.opt_control_station = true;
-
-	} else {
-
-		app.opt_control_station = url.searchParams.get("control_station");
-
-		if (app.opt_control_station == null) {
-			app.opt_control_station = false;
+		if (url.protocol.startsWith("https")) {
+			app.opt_control_station = true;
 		}
-		if (!app.opt_control_station) {
-			app.opt_control_station = +app.opt_control_station;
-		}
+	}
 
+	if (!app.opt_control_station) {		
+		var ctrl_stat = url.searchParams.get("control_station");
+		if (ctrl_stat != null) {
+			app.opt_control_station = +ctrl_stat;
+		}
 	}
 
 	if (app.opt_control_station) {
-		console.warn("TEST: control station mode");
+		local_log("control station mode");
 	}
 
 }
 
 function is_dev_machine()
 {
-
 	var v = navigator.appVersion;
 
 	if (v.indexOf("Intel Mac OS X 10_15_7") == -1) return false;
@@ -231,23 +218,22 @@ function is_dev_machine()
 
 function init_url_option_autoconnect(url)
 {
-
 	app.opt_autoconnect = url.searchParams.get("autoconnect");
 	if (app.opt_autoconnect == null) {
 		app.opt_autoconnect = false;
 	}
+
 	if (!app.opt_autoconnect) {
 		app.opt_autoconnect = +app.opt_autoconnect;
 	}
-	if (app.opt_autoconnect) {
-		console.warn("TEST: autoconnect is active");
-	}
 
+	if (app.opt_autoconnect) {
+		local_log("autoconnect is active");
+	}
 }
 
 function init_bind_buttons()
 {
-
 	elm("connect").onclick = handle_button_connect;
 	elm("abort").onclick = handle_button_abort_or_disconnect;
 	elm("disconnect").onclick = handle_button_abort_or_disconnect;
@@ -259,7 +245,6 @@ function init_bind_buttons()
 	elm("cmd_gray").onclick = handle_button_cmd;
 
 	elm("local").onclick = beep;
-
 }
 
 function init_auto_update()
@@ -278,19 +263,17 @@ function rescheduler_auto_update()
 
 function auto_update_proc(response)
 {
-
 	if (app.update_hash == cyrb53(response)) {
 		rescheduler_auto_update();
 		return;
 	}
 
-	console.log("---- update ----");
+	local_log("---- update ----");
 	document.body.innerHTML = "<h1><font color=\"white\">UPDATING</font></h1>";
 	document.body.style.background = "black";
 	setTimeout(function() {
 		location.reload();
 	}, 1000);
-
 }
 
 function reset_stat()
@@ -298,7 +281,6 @@ function reset_stat()
 	app.stat_count = 0;
 	app.stat_min_delay = 0;
 	app.stat_max_delay = 0;
-
 }
 
 function elm(id)
@@ -456,7 +438,6 @@ function process_packet(packet)
 
 function handle_socket_close(event)
 {
-
 	stop_heartbeat();
 	discard_websocket();
 
@@ -464,7 +445,6 @@ function handle_socket_close(event)
 
 	page("join");
 	setTimeout(create_websocket, 400);
-
 }
 
 function handle_button_connect()
@@ -492,7 +472,7 @@ function send(signature, args)
 	if (app.websocket.readyState != app.websocket.OPEN) return;
 
 	if ((typeof args) != "object") {
-		console.error("INTERNAL: invalid send format");
+		local_log("INTERNAL ERROR: invalid send format");
 		return;
 	}
 
@@ -525,12 +505,10 @@ function schedule_heartbeat(timeout_s)
 
 function stop_heartbeat()
 {
-
 	if (app.heartbeat == null) return;
 
 	clearTimeout(app.heartbeat);
 	app.heartbeat = null;
-
 }
 
 function get_raw_clock()
@@ -541,7 +519,6 @@ function get_raw_clock()
 
 function get_clock(parm = undefined)
 {
-
 	if (typeof (parm) == "undefined") {
 		var now = get_raw_clock();
 	} else {
@@ -573,7 +550,6 @@ function clock_sync_eval(clock_ref)
 
 function clock_sync_calc_skew(clock_ref)
 {
-
 	app.clock_c1 = get_raw_clock();
 
 	var turnaround = app.clock_c1 - app.clock_c0;
@@ -583,12 +559,10 @@ function clock_sync_calc_skew(clock_ref)
 
 	var change = Math.abs(app.clock_skew - skew);
 	if (change > 30) app.clock_skew = skew;
-
 }
 
 function clock_sync_reschedule()
 {
-
 	if (app.clock_sync_round >= CLOCK_SYNC_TIMING_S.length) {
 		var sleep_duration_s = CLOCK_SYNC_TIMING_S[CLOCK_SYNC_TIMING_S.length - 1];
 	} else {
@@ -600,5 +574,4 @@ function clock_sync_reschedule()
 	sleep_duration_ms += Math.random() * (sleep_duration_ms / 10);
 
 	setTimeout(clock_sync_start, sleep_duration_ms);
-
 }

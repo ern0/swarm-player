@@ -18,6 +18,7 @@ if [ ! -f "$cert_crt" ]; then
 		-sha256 -days 365
 fi
 
+export http_upgrade="\$http_upgrade"
 envsubst <nginx.conf >/tmp/nginx.conf
 
 nginx -c /tmp/nginx.conf
