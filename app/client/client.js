@@ -157,6 +157,7 @@ function init_options()
 	var url = new URL(document.location.href);
 	init_url_connection(url);
 	init_url_control_station(url);
+	init_https_link(url);
 }
 
 function init_const_options()
@@ -251,6 +252,17 @@ function init_auto_update()
 {
 	if (!app.opt_autoconnect) return;
 	rescheduler_auto_update();
+}
+
+function init_https_link(url) 
+{
+	if (url.protocol.startsWith("https")) {
+		hide("https");
+		return;
+	} 
+
+	var link = "https://" + url.hostname + url.pathname;
+	elm("https").setAttribute("href", link);
 }
 
 function rescheduler_auto_update()
