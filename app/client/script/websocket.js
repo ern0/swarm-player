@@ -72,7 +72,7 @@ function send(signature, args)
 	if (app.websocket.readyState != app.websocket.OPEN) return;
 
 	if ((typeof args) != "object") {
-		local_log("INTERNAL ERROR: invalid send format");
+		log("INTERNAL ERROR: invalid send format");
 		return;
 	}
 

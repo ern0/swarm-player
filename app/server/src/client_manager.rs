@@ -93,6 +93,10 @@ impl ClientManager {
             let packet = Packet::from(&text);
             match packet.get_type().as_str() {
 
+                "RELOAD" => {
+                    self.process_request_reload(&packet);
+                },
+
                 "COLOR" => {
                     self.process_request_color(&packet);
                 },
@@ -106,6 +110,10 @@ impl ClientManager {
             }
         }
 
+    }
+
+    fn process_request_reload(&self, packet: &Packet) {
+        self.broadcast(packet);
     }
 
     fn process_request_color(&self, packet: &Packet) {
