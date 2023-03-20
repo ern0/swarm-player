@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+use std::fs::OpenOptions;
+use std::io::prelude::*;
 use std::collections::HashMap;
 use std::time::Duration;
 use std::thread::{sleep, spawn};
@@ -93,6 +95,10 @@ impl ClientManager {
             let packet = Packet::from(&text);
             match packet.get_type().as_str() {
 
+                "LOG" => {
+                    self.process_request_log(client_id, &packet);
+                },
+
                 "RELOAD" => {
                     self.process_request_reload(&packet);
                 },
@@ -120,6 +126,29 @@ impl ClientManager {
 
         let _color = packet.get_str(0);
         self.broadcast(packet);
+    }
+
+    fn process_request_log(&self, client_id: u64, packet: &Packet) {
+
+        let mut file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("log.txt")
+            .unwrap();
+
+        let message = packet.get_str(0);
+        let delayed = {
+            if packet.get_num(1) > 0 {
+                " (delayed)"
+            } else {
+                ""
+            }
+        };
+
+        println!("CLIENT LOG: [{}]{} {}", client_id, delayed, message);        
+        if let Err(e) = writeln!(file, "[{}] {}", client_id, message) {
+            eprintln!("*** LOG error: {}", e);
+        }
     }
 
     fn run_display_counter(&self) {

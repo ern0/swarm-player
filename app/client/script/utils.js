@@ -1,7 +1,3 @@
-function log(message) {
-	console.log(message);
-}
-
 function elm(id)
 {
 	return document.getElementById(id);
