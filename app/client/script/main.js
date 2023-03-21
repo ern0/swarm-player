@@ -11,6 +11,7 @@ function main()
 {
 	app = {};
 
+	clock_sync_reset();
 	init_log();
 	init_awake();
 	init_options();

@@ -2,8 +2,9 @@
 
 use std::collections::HashMap;
 use std::vec::Vec;
+use std::time::{SystemTime, UNIX_EPOCH};
 use tinyjson::JsonValue;
-use crate::utils::{UNDEF, STAMP_OFFSET_MS};
+use crate::utils::{UNDEF, STAMP_OFFSET_MS, systime_to_millis};
 
 pub enum SyncMode { SyncData, AsyncCommand }
 
@@ -105,19 +106,33 @@ impl Packet {
         return &self.data_as_str[index];
     }
 
-    pub fn render_json(&self, stamp: i64) -> String {
+    pub fn get_bool(&self, index: usize) -> bool {
 
+        let left_char = &self.data_as_str[index][0..1];
+        let left_upcase = left_char.to_uppercase();
+
+        return match left_upcase.as_str() {
+            "F" => false,
+            "N" => false,
+            "0" => false,
+            _ => true,
+        };
+    }
+
+    pub fn render_json(&self, stamp: SystemTime) -> String {
+
+        let stamp_millis = systime_to_millis(stamp);
         let mut json: String = String::from("{");
         
         json.push_key("type");
         json.push_quoted(self.get_type());
         
-        if stamp != UNDEF {
+        if stamp != UNIX_EPOCH {
             json.push_str(",");
             json.push_key("stamp");
             match self.get_sync_mode() {
                 SyncMode::SyncData => {
-                    let offseted = stamp + STAMP_OFFSET_MS;
+                    let offseted = stamp_millis + STAMP_OFFSET_MS;
                     json.push_str(&offseted.to_string());
                 },
                 SyncMode::AsyncCommand => {

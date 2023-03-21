@@ -3,11 +3,11 @@
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::collections::HashMap;
-use std::time::Duration;
+use std::time::{SystemTime, Duration};
 use std::thread::{sleep, spawn};
 use std::sync::{Arc, RwLock};
 use simple_websockets::{Event, Message, Responder};
-use crate::utils::{now, ClientList};
+use crate::utils::{now_string, systime_to_millis, systime_to_string, ClientList};
 use crate::client::Client;
 use crate::packet::Packet;
 
@@ -36,9 +36,14 @@ impl ClientManager {
 
     fn broadcast(&self, packet: &Packet) {
 
-        let packet_stamp = now();
+        let packet_stamp = SystemTime::now();
         let text_immutable: String = packet.render_json(packet_stamp);
-        println!("<mgr> broadcast: {}", text_immutable);
+
+        println!(
+            "[mgr] {}: broadcast: {}", 
+            systime_to_string(packet_stamp),
+            text_immutable,
+            );
 
         let hash_map = self.clients.read().unwrap();
         for (_id, client) in hash_map.iter() {
@@ -52,7 +57,11 @@ impl ClientManager {
 
         let event_hub = simple_websockets::launch(8080)
             .expect("failed to listen on port 8080");
-        println!("server is up");
+
+        println!(
+            "[mgr] {}: server is up",
+            now_string(),
+            );
 
         loop {
             match event_hub.poll_event() {
@@ -71,7 +80,11 @@ impl ClientManager {
 
     fn on_connect(&self, client_id: u64, responder: Responder) {
 
-        println!("[{}] connected", client_id);
+        println!(
+            "[{}] {}: connected", 
+            client_id,
+            now_string(),
+            );
 
         let arc = self.clients.clone();
         let client = Client::new(arc, client_id, responder);
@@ -81,7 +94,11 @@ impl ClientManager {
 
     fn on_disconnect(&self, client_id: u64) {
 
-        println!("[{}] disconnected", client_id);
+        println!(
+            "[{}] {}: disconnected", 
+            now_string(),
+            client_id,
+            );
 
         self.clients.write().unwrap().remove(&client_id);
     }
@@ -90,7 +107,12 @@ impl ClientManager {
 
         if let Message::Text(text) = message {
 
-            println!("[{}] message: {}", client_id, text);
+            println!(
+                "[{}] {}: message received: {}", 
+                client_id,
+                now_string(),
+                text,
+                );
 
             let packet = Packet::from(&text);
             match packet.get_type().as_str() {
@@ -133,20 +155,30 @@ impl ClientManager {
         let mut file = OpenOptions::new()
             .create(true)
             .append(true)
-            .open("log.txt")
+            .open("/tmp/log.txt")    // TODO: better path
             .unwrap();
 
         let message = packet.get_str(0);
-        let delayed = {
-            if packet.get_num(1) > 0 {
-                " (delayed)"
-            } else {
-                ""
-            }
+        let delay_mark = {
+            if packet.get_bool(1) { "?" } else { "" }
         };
+        let stamp = packet.get_num(2);
 
-        println!("CLIENT LOG: [{}]{} {}", client_id, delayed, message);        
-        if let Err(e) = writeln!(file, "[{}] {}", client_id, message) {
+        println!(
+            "[{}] {}{} {}",
+            client_id, 
+            stamp, 
+            delay_mark, 
+            message,
+            );       
+        if let Err(e) = writeln!(
+            file, 
+            "[{}] {}{}: {}", 
+            client_id, 
+            stamp,
+            delay_mark,
+            message,
+            ) {
             eprintln!("*** LOG error: {}", e);
         }
     }
@@ -155,6 +187,8 @@ impl ClientManager {
 
         let mut counter = 0;
         let mut packet = Packet::new_simple_num("DISPLAY", counter);
+
+        sleep(Duration::from_secs(1));
 
         loop {        
             packet.set_num(0, counter);
