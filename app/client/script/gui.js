@@ -35,9 +35,15 @@ function init_https_link()
 	elm("https_link").setAttribute("href", link);
 }
 
-function display(content)
+function display_defaults() 
 {
-	elm("kontent").innerHTML = content;
+	display("id", "-");
+	display("counter", "...");
+}
+
+function display(key, content)
+{
+	elm(key).innerHTML = content;
 }
 
 function page(req)
@@ -57,7 +63,7 @@ function page(req)
 	} // for
 
 	if (req == "op") {
-		display("...");
+		display_defaults();
 	}
 
 	if (req == "bye") {

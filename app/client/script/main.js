@@ -53,7 +53,7 @@ function process_packet(packet)
 	}
 
 	if (packet.type == "DISPLAY") {
-		display(packet.data[0]);
+		display(packet.data[0], packet.data[1]);
 	}
 
 	if (packet.type == "COLOR") {

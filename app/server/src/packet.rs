@@ -254,7 +254,7 @@ fn parse_data(root_object: &JsonObj, num_vec: &mut Vec<i64>, str_vec: &mut Vec<S
 #[cfg(test)]
 mod tests {
     use crate::packet::{Packet, SyncMode};
-    use crate::utils::UNDEF;
+    use std::time::UNIX_EPOCH;
 
     const JSON_BASIC_STR: &str = r#"{"type":"TYP","data":["VAL"]}"#;
     const JSON_BASIC_NUM: &str = r#"{"type":"BEAST","data":[666]}"#;
@@ -307,14 +307,14 @@ mod tests {
 
     #[test]
     fn create_simple_str() {
-        let mut packet = Packet::new_simple_str("TYP","VAL");
-        let json = packet.render_json(UNDEF);
+        let packet = Packet::new_simple_str("TYP","VAL");
+        let json = packet.render_json(UNIX_EPOCH);
         assert_eq!(json, JSON_BASIC_STR);
     }
     #[test]
     fn create_simple_num() {
-        let mut packet = Packet::new_simple_num("BEAST", 666);
-        let json = packet.render_json(UNDEF);
+        let packet = Packet::new_simple_num("BEAST", 666);
+        let json = packet.render_json(UNIX_EPOCH);
         assert_eq!(json, JSON_BASIC_NUM);
     }
     #[test]
@@ -322,7 +322,7 @@ mod tests {
         let mut packet = Packet::new_simple_num("T", 0);
         packet.set_str(1, "one");
         packet.set_num(2, 2);
-        let json = packet.render_json(UNDEF);
+        let json = packet.render_json(UNIX_EPOCH);
         assert_eq!(json, JSON_MIXED);
     }
     #[test]
