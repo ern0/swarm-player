@@ -3,7 +3,7 @@
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::collections::HashMap;
-use std::time::{SystemTime, Duration};
+use std::time::{SystemTime, Duration, UNIX_EPOCH};
 use std::thread::{sleep, spawn};
 use std::sync::{Arc, RwLock};
 use simple_websockets::{Event, Message, Responder};
@@ -88,6 +88,10 @@ impl ClientManager {
 
         let arc = self.clients.clone();
         let client = Client::new(arc, client_id, responder);
+
+        let packet = Packet::new_simple_num("ID", client_id as i64);
+        client.send_packet(&packet, UNIX_EPOCH);
+
         self.clients.write().unwrap().insert(client.id, client);
 
     }
@@ -186,13 +190,15 @@ impl ClientManager {
 
     fn run_display_counter(&self) {
 
-        let mut counter = 0;
-        let mut packet = Packet::new_simple_num("DISPLAY", counter);
+        let mut packet = Packet::new();
+        packet.set_type("DISPLAY");
+        packet.set_str(0, "counter");
 
         sleep(Duration::from_secs(1));
 
+        let mut counter = 0;
         loop {        
-            packet.set_num(0, counter);
+            packet.set_num(1, counter);
             self.broadcast(&packet);
             counter += 1;
 

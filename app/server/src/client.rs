@@ -1,6 +1,6 @@
 //#![allow(unused)]
 
-use std::time::{SystemTime};
+use std::time::{SystemTime, UNIX_EPOCH};
 use simple_websockets::{Message, Responder};
 use crate::utils::{now_string, systime_to_string, systime_to_millis, ClientList};
 use crate::packet::Packet;
@@ -37,7 +37,14 @@ impl Client {
 
     }
 
-    fn send(&self, text: &str) {
+    pub fn send_packet(&self, packet: &Packet, stamp: SystemTime) {
+
+        let text: String = packet.render_json(stamp);
+        self.send_text(&text);
+
+    }
+
+    pub fn send_text(&self, text: &str) {
 
         println!(
             "[{}] {}: send: {}", 
@@ -65,8 +72,7 @@ impl Client {
 
         let clk_millis = systime_to_millis(clk_server);
         let packet: Packet = Packet::new_simple_num("CLK_REF", clk_millis);
-        let json = packet.render_json(clk_server);        
-        self.send(&json);
+        self.send_packet(&packet, UNIX_EPOCH);
     }
 
 }

@@ -37,6 +37,7 @@ function startup()
 
 function reset_stat()
 {
+	app.client_id = "";
 	app.stat_count = 0;
 	app.stat_min_delay = 0;
 	app.stat_max_delay = 0;
@@ -44,6 +45,12 @@ function reset_stat()
 
 function process_packet(packet)
 {
+	if (packet.type == "ID") {
+		app.client_id = +packet.data[0];
+		display("id", app.client_id);
+		set_beep_freq();
+	}
+
 	if (packet.type == "CLK_REF") {
 		clock_sync_eval(packet.data[0]);
 	}

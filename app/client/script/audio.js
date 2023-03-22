@@ -1,6 +1,6 @@
 function init_audio()
 {
-	app.frequency = 200 + (Math.random() * 900);
+	app.frequency = 50;
 	app.audio_context = new AudioContext();
 
 	if (app.audio_context == null) {
@@ -19,4 +19,11 @@ function beep()
 	setTimeout(function() {
 		app.oscillator.stop();
 	}, 100);
+}
+
+function set_beep_freq() 
+{
+	var base_hz = 220;
+	var pitch = app.client_id * 3;
+	app.frequency = base_hz * (2 ** (pitch / 12));
 }
