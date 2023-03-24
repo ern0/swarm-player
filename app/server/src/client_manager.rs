@@ -3,11 +3,11 @@
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::collections::HashMap;
-use std::time::{SystemTime, Duration, UNIX_EPOCH};
+use std::time::Duration;
 use std::thread::{sleep, spawn};
 use std::sync::{Arc, RwLock};
 use simple_websockets::{Event, Message, Responder};
-use crate::utils::{now_string, systime_to_string, millis_to_string, ClientList};
+use crate::utils::{now_string, millis_to_string, ClientList};
 use crate::client::Client;
 use crate::packet::Packet;
 
@@ -36,12 +36,11 @@ impl ClientManager {
 
     fn broadcast(&self, packet: &Packet) {
 
-        let packet_stamp = SystemTime::now();
-        let text_immutable: String = packet.render_json(packet_stamp);
+        let text_immutable: String = packet.render_json();
 
         println!(
             "[mgr] {}: broadcast: {}", 
-            systime_to_string(packet_stamp),
+            now_string(),
             text_immutable,
             );
 
@@ -90,7 +89,7 @@ impl ClientManager {
         let client = Client::new(arc, client_id, responder);
 
         let packet = Packet::new_simple_num("ID", client_id as i64);
-        client.send_packet(&packet, UNIX_EPOCH);
+        client.send_packet(&packet);
 
         self.clients.write().unwrap().insert(client.id, client);
 
@@ -112,7 +111,7 @@ impl ClientManager {
         if let Message::Text(text) = message {
 
             println!(
-                "[{}] {}: message received: {}", 
+                "[{}] {}: recv: {}", 
                 client_id,
                 now_string(),
                 text,

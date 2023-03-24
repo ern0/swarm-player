@@ -14,8 +14,8 @@ function main()
 	init_log();
 	clock_sync_reset();
 	init_awake();
-	init_audio();
 	init_websocket();
+	init_audio();
 	init_options();
 	init_heartbeat();
 	init_gui();
@@ -34,21 +34,11 @@ function startup()
 	}
 }
 
-
-function reset_stat()
-{
-	app.client_id = "";
-	app.stat_count = 0;
-	app.stat_min_delay = 0;
-	app.stat_max_delay = 0;
-}
-
-function process_packet(packet)
+function process_packet_now(packet)
 {
 	if (packet.type == "ID") {
 		app.client_id = +packet.data[0];
 		display("id", app.client_id);
-		set_beep_freq();
 	}
 
 	if (packet.type == "CLK_REF") {
@@ -66,9 +56,12 @@ function process_packet(packet)
 
 	if (packet.type == "COLOR") {
 		flash_color(packet.data[0]);
-		beep();
 	}
+}
 
-
-	//...
+function process_packet_timed(packet, delay_ms)
+{
+	if (packet.type == "COLOR") {
+		beep(delay_ms);
+	}
 }

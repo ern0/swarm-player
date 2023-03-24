@@ -25,7 +25,7 @@ function clock_sync_reset()
 function clock_sync_start()
 {
 	app.clock_c0 = get_raw_clock();
-	send("CLK_0", [app.clock_skew]);
+	send("CLK_0",[]);
 }
 
 function clock_sync_eval(clock_ref)
@@ -43,8 +43,24 @@ function clock_sync_calc_skew(clock_ref)
 	var estimation = app.clock_c0 + distance;
 	var skew = Math.round(estimation - clock_ref);
 
-	var change = Math.abs(app.clock_skew - skew);
-	if (change > 30) app.clock_skew = skew;
+	var change = skew - app.clock_skew;
+
+	var change_sgn = "";
+	if (change > 0) change_sgn = "+";
+	if (change < 0) change_sgn = "-";
+	var change_abs = Math.abs(change);
+	var change_report = "clock skew: " + app.clock_skew;
+	change_report += " " + change_sgn + " " + change_abs;
+	change_report += " = " + skew + " ";
+	if (change_abs > 30) {
+		app.clock_skew = skew;
+		change_report += "(changed)"
+	} else {
+		change_report += "(kept)"
+	}
+
+	log(change_report);
+
 }
 
 function clock_sync_reschedule()

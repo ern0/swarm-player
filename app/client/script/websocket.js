@@ -1,6 +1,7 @@
 function init_websocket()
 {
 	app.websocket = null;
+	app.client_id = -1;
 }
 
 function create_websocket()
@@ -23,9 +24,10 @@ function handle_socket_open(event)
 	page("op");
 
 	flush_log();
+	reset_stat();
 	schedule_heartbeat(HEARTBEAT_TIMING_S[0]);
 	clock_sync_reset();
-	clock_sync_start();	
+	clock_sync_start();
 }
 
 function handle_socket_message(event)
@@ -33,27 +35,21 @@ function handle_socket_message(event)
 	var packet = JSON.parse(event.data);
 
 	if (packet.stamp == 0) {
-		process_packet(packet);
+		process_packet_now(packet);
 		return;
 	}
 
 	var now = get_clock();
 	var action = packet.stamp;
 	var delay = action - now;
-
-	app.stat_count += 1;
-	if (app.stat_min_delay == 0 || app.stat_min_delay < delay) {
-		app.stat_min_delay = delay;
-	}
-	if (app.stat_max_delay == 0 || app.stat_max_delay > delay) {
-		app.stat_max_delay = Math.round(delay);
-	}
-
+	feed_stat(delay);
 	if (delay < 1) delay = 1;
 
 	setTimeout(function() {
-		process_packet(packet);
+		process_packet_now(packet);
 	}, delay);
+	process_packet_timed(packet, delay);
+
 }
 
 function handle_socket_close(event)
