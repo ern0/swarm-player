@@ -14,6 +14,7 @@ export host=`ifconfig | grep 192 | cut -d' ' -f2`
 if [ -z $host ]; then
 	export host=`ifconfig | grep "inet 10" | cut -d't' -f2 | cut -d' ' -f2`
 fi
+export started=`date -Iminutes | cut -d"T" -f2 | cut -d"+" -f1`
 export pwd=`pwd`
 export cert_crt=`pwd`/cert.crt
 export cert_key=`pwd`/cert.key

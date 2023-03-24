@@ -121,7 +121,9 @@ Implement Development comfort functions.
 Use `nginx` for HTTPS and WSS support.
 
 
-### `nginx`
+### Web proxy
+
+Configure `nginx` for web server and proxy functions.
 
 - Static webserver on port 8000
 - Make HTTPS proxy to static webserver (port 8000)
@@ -312,10 +314,7 @@ The Player should send
 - a prototype Channel command (e.g. Set Color).
 
 
----
-
-
-## Notices
+## Notes
 
 
 ### Song
