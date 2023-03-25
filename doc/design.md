@@ -132,10 +132,10 @@ Configure `nginx` for web server and proxy functions.
 
 ### Client
 
-- Minimal sound playing capability
 - Avoid screensaver (browser API and video)
-- Auto update: reload on request
+- Web client update: reload on request
 - Logging to server
+- Reliable audio playback even on Samsung Galaxy A22
 
 
 ### Server
@@ -150,7 +150,6 @@ Get some devices.
 
 
 ## Milestone 4: The channel concept
-
 
 The Player should request the server
 to split up clients to *Channels*, which
