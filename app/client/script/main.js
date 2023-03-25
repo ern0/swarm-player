@@ -34,6 +34,38 @@ function startup()
 	}
 }
 
+function process_packet(packet)
+{
+	if (packet.stamp == 0) {
+		process_packet_now(packet);
+	} else {
+		var delay = calc_packet_delay(packet);
+		feed_stat(delay);
+		process_packet_later(packet, delay);
+	}
+}
+
+function calc_packet_delay(packet)
+{
+	var now = get_clock();
+	var action = packet.stamp;
+	var delay = action - now;
+	if (delay < 1) delay = 1;
+
+	return delay
+}
+
+function process_packet_later(packet, delay)
+{
+	if (packet.type == "COLOR") {
+		beep(delay);
+	}
+
+	setTimeout(function() {
+		process_packet_now(packet);
+	}, delay);
+}
+
 function process_packet_now(packet)
 {
 	if (packet.type == "ID") {
@@ -47,7 +79,6 @@ function process_packet_now(packet)
 
 	if (packet.type == "RELOAD") {
 		document.location.reload();
-		return;
 	}
 
 	if (packet.type == "DISPLAY") {
@@ -57,11 +88,5 @@ function process_packet_now(packet)
 	if (packet.type == "COLOR") {
 		flash_color(packet.data[0]);
 	}
-}
 
-function process_packet_timed(packet, delay_ms)
-{
-	if (packet.type == "COLOR") {
-		beep(delay_ms);
-	}
 }

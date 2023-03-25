@@ -45,9 +45,7 @@ function clock_sync_calc_skew(clock_ref)
 
 	var change = skew - app.clock_skew;
 
-	var change_sgn = "";
-	if (change > 0) change_sgn = "+";
-	if (change < 0) change_sgn = "-";
+	var change_sgn = (change < 0 ? "-" : "+");
 	var change_abs = Math.abs(change);
 	var change_report = "clock skew: " + app.clock_skew;
 	change_report += " " + change_sgn + " " + change_abs;
