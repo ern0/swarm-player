@@ -9,18 +9,20 @@ pub struct Client {
     pub clients: ClientList,
     pub id: u64,
     pub responder: Responder,
+    pub debug: bool,
     pub seen: SystemTime,
     pub epoch: SystemTime,
 }
 
 impl Client {
 
-    pub fn new(clients: ClientList, id: u64, responder: Responder) -> Self {
+    pub fn new(clients: ClientList, id: u64, responder: Responder, debug: bool) -> Self {
 
         return Client {
             clients: clients,
             id: id,
             responder: responder,
+            debug: debug,
             seen: SystemTime::UNIX_EPOCH,
             epoch: SystemTime::now(),
         };
@@ -46,12 +48,14 @@ impl Client {
 
     pub fn send_text(&self, text: &str) {
 
-        println!(
-            "[{}] {}: send: {}", 
-            self.id, 
-            now_string(),
-            text,
-            );
+        if self.debug {
+            println!(
+                "[{}] {}: send: {}", 
+                self.id, 
+                now_string(),
+                text,
+                );
+        }
 
         let message = Message::Text(text.to_string());
         self.responder.send(message);
