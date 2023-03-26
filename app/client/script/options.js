@@ -44,14 +44,13 @@ function init_url_control_station(url)
 	if (!app.opt_control_station) {		
 		var ctrl_stat = url.searchParams.get("control_station");
 		if (ctrl_stat != null) {
-			app.opt_control_station = +ctrl_stat;
+			if (+ctrl_stat) {
+				app.opt_control_station = true;
+			}
 		}
 	}
 
-	if (app.opt_control_station) {
-		log("control station mode");
-	}
-
+	report_control_station();
 }
 
 function is_dev_machine()

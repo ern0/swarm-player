@@ -17,6 +17,7 @@ function main()
 	clock_sync_reset();
 	init_awake();
 	init_websocket();
+	init_report();
 	init_audio();
 	init_options();
 	init_heartbeat();
