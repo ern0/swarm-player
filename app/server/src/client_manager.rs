@@ -103,8 +103,8 @@ impl ClientManager {
 
         println!(
             "[{}] {}: disconnected", 
-            now_string(),
             client_id,
+            now_string(),
             );
 
         self.clients.write().unwrap().remove(&client_id);
