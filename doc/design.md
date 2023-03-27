@@ -155,23 +155,33 @@ Configure `nginx` for web server and proxy functions.
 Get some devices.
 
 
-## Milestone 4: Control station
+## Milestone 4: Admin mode
 
-The control station should display some information
-on the system (dashboard),
-the server should collect and provide data.
+Exactly one of the clients should be put in admin mode.
+The role of this client:
 
+- control the show,
+- play the song: send notes to server,
+- receive external MIDI and send to server,
+- display dashboard,
+- diaplay any other show elements,
+- play *Master Channel*.
+
+Milestone features:
+
+- enter admin mode,
+- show dashboard.
 
 ### Client
 
-- Dashboard: show active clients with ID and info
-- Show connect and disconnect
+- Show active clients with ID and info on the dashboard,
+- handle connect and disconnect.
 
 
 ### Server
 
-- Collect dashboard data
-- Push data upon change
+- Collect dashboard data,
+- push data upon change.
 
 
 ## Milestone 5: The channel concept
