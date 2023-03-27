@@ -138,7 +138,7 @@ Configure `nginx` for web server and proxy functions.
 - Web client update: reload on request
 - Logging to server, retry if offline
 - Report values to server 
-  (control station mode, audio lag),
+  (admin mode, audio lag),
   re-send on server restart
 - Fix GUO layout for landscape mode
 

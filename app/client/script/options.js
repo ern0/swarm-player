@@ -4,7 +4,7 @@ function init_options()
 
 	var url = new URL(document.location.href);
 	init_url_connection(url);
-	init_url_control_station(url);
+	init_url_admin(url);
 }
 
 function init_const_options()
@@ -31,30 +31,31 @@ function init_url_connection(url)
 	app.server_url += "/api";
 }
 
-function init_url_control_station(url)
+function init_url_admin(url)
 {
-	app.opt_control_station = false;
+	app.is_admin = false;
 
 	if (is_dev_machine()) {
 		if (url.protocol.startsWith("https")) {
-			app.opt_control_station = true;
+			app.is_admin = true;
 		}
 	}
 
-	if (!app.opt_control_station) {		
-		var ctrl_stat = url.searchParams.get("control_station");
-		if (ctrl_stat != null) {
-			if (+ctrl_stat) {
-				app.opt_control_station = true;
+	if (!app.is_admin) {		
+		var is_adm = document.referrer.endsWith("/admin");
+		if (is_adm != null) {
+			if (+is_adm) {
+				app.is_admin = true;
 			}
 		}
 	}
 
-	report_control_station();
+	report_is_admin();
 }
 
 function is_dev_machine()
 {
+	return false;
 	var v = navigator.appVersion;
 
 	if (v.indexOf("Intel Mac OS X 10_15_7") == -1) return false;

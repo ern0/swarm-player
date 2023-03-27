@@ -8,7 +8,7 @@ use crate::packet::Packet;
 pub struct Client {
     pub clients: ClientList,
     pub id: u64,
-    pub control_station: bool,
+    pub is_admin: bool,
     pub lag: i64,
     pub responder: Responder,
     pub debug: bool,
@@ -23,7 +23,7 @@ impl Client {
         return Client {
             clients: clients,
             id: id,
-            control_station: false,
+            is_admin: false,
             lag: 0,
             responder: responder,
             debug: debug,
@@ -38,7 +38,7 @@ impl Client {
 
         match packet.get_type().as_str() {
             "CLK_0" => self.process_request_clk0(),
-            "CTRL" => self.process_report_ctrl(),
+            "ADMIN" => self.process_report_admin(),
             "AUDIO" => self.process_report_audio(&packet),
             _ => {},
         }
@@ -76,12 +76,12 @@ impl Client {
         self.send_packet(&packet);
     }
 
-    fn process_report_ctrl(&mut self) {
+    fn process_report_admin(&mut self) {
         
-        self.control_station = true;
+        self.is_admin = true;
 
         println!(
-            "[{}] {}: control station selected", 
+            "[{}] {}: admin mode", 
             self.id,
             now_string(),
             );
