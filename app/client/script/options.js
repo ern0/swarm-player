@@ -35,27 +35,16 @@ function init_url_admin(url)
 {
 	app.is_admin = false;
 
-	if (is_dev_machine()) {
-		if (url.protocol.startsWith("https")) {
-			app.is_admin = true;
-		}
-	}
-
-	if (!app.is_admin) {		
-		var is_adm = document.referrer.endsWith("/admin");
-		if (is_adm != null) {
-			if (+is_adm) {
-				app.is_admin = true;
-			}
-		}
-	}
-
+	if (!is_dev_machine()) return false;
+	if (!url.protocol.startsWith("https")) return false;
+	if (!document.referrer.endsWith("/admin")) return false;
+	
+	app.is_admin = true;
 	report_is_admin();
 }
 
 function is_dev_machine()
 {
-	return false;
 	var v = navigator.appVersion;
 
 	if (v.indexOf("Intel Mac OS X 10_15_7") == -1) return false;
