@@ -30,6 +30,7 @@ function handle_socket_open(event)
 	clock_sync_start();
 
 	reset_report();
+	admin_socket_open();
 }
 
 function handle_socket_message(event)
@@ -42,6 +43,7 @@ function handle_socket_close(event)
 {
 	stop_heartbeat();
 	discard_websocket();
+	admin_socket_close();
 
 	if (app.intent == "offline") return;
 

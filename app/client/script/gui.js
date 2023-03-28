@@ -8,17 +8,17 @@ function init_gui() {
 
 function init_buttons()
 {
-	elm("connect").onclick = handle_button_connect;
-	elm("abort").onclick = handle_button_abort_or_disconnect;
-	elm("disconnect").onclick = handle_button_abort_or_disconnect;
+	$("connect").onclick = handle_button_connect;
+	$("abort").onclick = handle_button_abort_or_disconnect;
+	$("disconnect").onclick = handle_button_abort_or_disconnect;
 
-	elm("color_red").onclick = handle_button_cmd;
-	elm("color_orange").onclick = handle_button_cmd;
-	elm("color_green").onclick = handle_button_cmd;
-	elm("color_blue").onclick = handle_button_cmd;
+	$("color_red").onclick = handle_button_cmd;
+	$("color_orange").onclick = handle_button_cmd;
+	$("color_green").onclick = handle_button_cmd;
+	$("color_blue").onclick = handle_button_cmd;
 
-	elm("local").onclick = function() { beep(0); };
-	elm("reload").onclick = handle_button_cmd;
+	$("local").onclick = function() { beep(0); };
+	$("reload").onclick = handle_button_cmd;
 }
 
 function init_https_link() 
@@ -31,7 +31,7 @@ function init_https_link()
 	} 
 
 	var link = "https://" + url.hostname + url.pathname;
-	elm("https_link").setAttribute("href", link);
+	$("https_link").setAttribute("href", link);
 }
 
 function display_defaults() 
@@ -42,7 +42,7 @@ function display_defaults()
 
 function display(key, content)
 {
-	elm(key).innerHTML = content;
+	$(key).innerHTML = content;
 }
 
 function page(req)

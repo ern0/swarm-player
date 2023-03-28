@@ -1,16 +1,16 @@
-function elm(id)
+function $(id)
 {
 	return document.getElementById(id);
 }
 
 function show(id)
 {
-	elm(id).style.display = "block";
+	$(id).style.display = "block";
 }
 
 function hide(id)
 {
-	elm(id).style.display = "none";
+	$(id).style.display = "none";
 }
 
 function sgnfmt(value, role)
