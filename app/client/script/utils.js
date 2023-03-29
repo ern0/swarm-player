@@ -27,3 +27,10 @@ function sgnfmt(value, role)
 
 	return result;
 }
+
+function prop(elm, prop_name)
+{
+	var elm = $(elm);
+	var value = getComputedStyle(elm).getPropertyValue(prop_name);
+	return +value.replace("px","");
+}

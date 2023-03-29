@@ -19,6 +19,7 @@ function init_admin_ui()
 	Array.prototype.filter.call(elms, function(elm) {
 		elm.style.fontSize = "3vmin";
 	});
+
 }
 
 function init_admin_resize_handler()
@@ -34,8 +35,7 @@ function init_admin_resize_handler()
 		app.resize_timeout = setTimeout(function() {
 			app.resize_timeout = null;
 			admin_rethink();
-			admin_repaint();
-		
+			admin_repaint();		
 		}, 500);
 	};
 }
@@ -56,6 +56,8 @@ function admin_socket_open()
 	for (var cell in app.admin_cells) {
 		admin_remove(cell);
 	}
+
+	for (var i = 0; i < 15; i++) admin_add(i); //TODO: remove
 }
 
 function admin_socket_close()
@@ -71,28 +73,31 @@ function mk_elm_id(id)
 function admin_add_self() 
 {
 	admin_add(app.client_id);
-	admin_rethink();
-	admin_repaint();
+}
+
+function admin_elm_self()
+{
+	var elm_id = mk_elm_id(app.client_id);
+	return $(elm_id);
 }
 
 function admin_repaint()
 {
-	var rect = $("admin").getBoundingClientRect();
-
-	app.adm_area_width = rect.right - rect.left;
-	app.adm_area_height = rect.bottom - rect.top;
-
+	for (var id in app.admin_cells) {
+		admin_repaint_cell(id);
+	}
 }
 
 function admin_repaint_cell(id)
 {
+	var aura = 8;  // 2x border=2 + 2x margin=2
 	var elm_id = mk_elm_id(id);
 	var elm = $(elm_id);
 	if (elm == null) elm = admin_create_cell(elm_id);
 
 	elm.innerHTML = id;
-	elm.style.width = app.adm_cell_width + "px";
-	elm.style.height = app.adm_cell_height + "px";
+	elm.style.width = (app.admin_cell_width - aura) + "px";
+	elm.style.height = (app.admin_cell_height - aura) + "px";
 }
 
 function admin_create_cell(elm_id)
@@ -107,10 +112,60 @@ function admin_create_cell(elm_id)
 
 function admin_rethink() 
 {
-	//TODO: implement rethink()
-	app.adm_cell_width = 50;
-	app.adm_cell_height = 50;
+	var rect = $("admin").getBoundingClientRect();
+	app.admin_area_width = Math.floor(rect.right - rect.left);
+	app.admin_area_height = Math.floor(rect.bottom - rect.top);
+	app.admin_cell_count = Object.keys(app.admin_cells).length;
 
+	var cell_side = app.admin_area_width;
+	var jump = (cell_side + 5) / 2;
+	var best_slack = -1;
+	var best_cell_side = -1;
+
+	while (true) {		
+
+		cell_side = Math.round(cell_side);
+		var slack = admin_rethink_calc_slack(cell_side);
+
+		var is_slack_valid = (slack >= 0);
+		var is_slack_best = (slack < best_slack) || (best_slack < 0);
+		if (is_slack_valid && is_slack_best) {
+			best_slack = slack;
+			best_cell_side = cell_side;
+		}
+
+		if (jump < 1) break;
+
+		if (slack > 0) {
+			cell_side = cell_side + jump;
+		} else {
+			cell_side = cell_side - jump;
+		}
+
+		jump = jump / 2;
+
+	}
+
+	var cell_count_in_row = Math.floor(app.admin_area_width / best_cell_side);
+	var cells_width = best_cell_side * cell_count_in_row;
+	var horiz_slack = app.admin_area_width - cells_width;
+	var cell_extra_width = Math.floor(horiz_slack / cell_count_in_row);
+
+	//TODO: orphans vs rows
+
+	app.admin_cell_width = best_cell_side + cell_extra_width;
+	app.admin_cell_height = best_cell_side;
+}
+
+function admin_rethink_calc_slack(cell_side)
+{
+	var cell_count_in_row = Math.floor(app.admin_area_width / cell_side);
+	if (cell_count_in_row < 1) return -1;
+
+	var required_row_count = Math.ceil(app.admin_cell_count / cell_count_in_row);
+	var slack = app.admin_area_height - (cell_side * required_row_count);
+
+	return slack;
 }
 
 function mk_cell_dim()
@@ -120,24 +175,15 @@ function mk_cell_dim()
 
 function admin_add(id)
 {
-	var before = mk_cell_dim();
 	app.admin_cells[id] = null;
 	admin_rethink();
-	var after = mk_cell_dim();
-	if (before != after) admin_repaint();
-
-	admin_repaint_cell(id);
+	admin_repaint();
 }
 
 function admin_remove(id)
 {
-	var before = mk_cell_dim();
 	delete app.admin_cells[id];
-	admin_rethink();
-	var after = mk_cell_dim();
-	if (before != after) admin_repaint();
-
-	//TODO: maybe requires repaint() some other cases, too
-
 	$(mk_elm_id(id)).remove();
+	admin_rethink();
+	admin_repaint();
 }
