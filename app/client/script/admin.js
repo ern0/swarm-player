@@ -102,9 +102,12 @@ function admin_repaint_cell(id)
 	elm.style.left = cell_pos[0] + "px";
 	elm.style.top = cell_pos[1] + "px";
 
-	var t = Math.random();
-	var d = Math.random();
-	elm.style.transition = "all " + t + "s linear " + d + "s";
+	var t = 0.5 + Math.random() * 0.7;
+	var d = Math.random() * 1.2;
+	elm.style.transition = (
+		"all " + (t) + "s ease-out " + (d) + "s, " +
+		"font-size " + (t) + "s linear " + (d) + "s");
+
 }
 
 function admin_create_cell(elm_id)
@@ -120,7 +123,7 @@ function admin_create_cell(elm_id)
 function admin_rethink() 
 {
 	admin_rethink_get_base_vars();
-	admin_rethink_find_best_side();
+	app.admin_best_cell_side = admin_rethink_find_best_cell_side();
 	app.admin_cell_height = app.admin_best_cell_side;
 
 	var cell_extra_width = admin_rethink_adjust_width();
@@ -137,12 +140,12 @@ function admin_rethink_get_base_vars()
 	app.admin_cell_count = Object.keys(app.admin_cells).length;
 }
 
-function admin_rethink_find_best_side()
+function admin_rethink_find_best_cell_side()
 {
 	var cell_side = app.admin_area_width;
 	var jump = (cell_side + 5) / 2;
 	var best_slack = -1;
-	app.admin_best_cell_side = -1;
+	var best_side = -1;
 
 	while (true) {		
 
@@ -153,7 +156,7 @@ function admin_rethink_find_best_side()
 		var is_slack_best = (slack < best_slack) || (best_slack < 0);
 		if (is_slack_valid && is_slack_best) {
 			best_slack = slack;
-			app.admin_best_cell_side = cell_side;
+			best_side = cell_side;
 		}
 
 		if (jump < 1) break;
@@ -166,6 +169,8 @@ function admin_rethink_find_best_side()
 
 		jump = jump / 2;
 	}
+
+	return best_side;
 }
 
 function admin_rethink_calc_slack(cell_side)
@@ -207,20 +212,23 @@ function admin_rethink_calc_extra_width(column_count)
 
 function admin_rethink_renumber()
 {
-	var column_count = Math.floor(app.admin_area_width / app.admin_best_cell_side);
-
 	var x = 0;
 	var y = 0;
+	var next_x = app.admin_cell_width;
+
 	for (var id in app.admin_cells) {
 
-		app.admin_cells[id] = [
-			x * app.admin_cell_width, 
-			y * app.admin_cell_height]; 
+		app.admin_cells[id] = [x, y];
 
-		x++;
-		if (x < column_count) continue;
-		x = 0;
-		y++;
+		x = next_x;
+		next_x += app.admin_cell_width;
+
+		if (next_x > app.admin_area_width) {
+			x = 0;
+			next_x = app.admin_cell_width;
+			y += app.admin_cell_height;
+		}
+
 	}
 }
 
