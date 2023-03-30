@@ -90,14 +90,17 @@ function admin_repaint()
 
 function admin_repaint_cell(id)
 {
-	var aura = 8;  // 2x border=2 + 2x margin=2
 	var elm_id = mk_elm_id(id);
 	var elm = $(elm_id);
 	if (elm == null) elm = admin_create_cell(elm_id);
 
 	elm.innerHTML = id;
-	elm.style.width = (app.admin_cell_width - aura) + "px";
-	elm.style.height = (app.admin_cell_height - aura) + "px";
+	elm.style.width = (app.admin_cell_width - ADMIN_CELL_AURA) + "px";
+	elm.style.height = (app.admin_cell_height - ADMIN_CELL_AURA) + "px";
+
+	//var cell_pos = app.admin_cells[id];
+	//elm.style.left = cell_pos[0] + "px";
+	//elm.style.top = cell_pos[1] + "px";
 }
 
 function admin_create_cell(elm_id)
@@ -112,11 +115,24 @@ function admin_create_cell(elm_id)
 
 function admin_rethink() 
 {
+	admin_rethink_get_base_vars();
+	admin_rethink_find_best_side();
+	app.admin_cell_height = app.admin_best_cell_side;
+
+	var cell_extra_width = admin_rethink_adjust_width();
+	app.admin_cell_width = app.admin_best_cell_side + cell_extra_width;
+}
+
+function admin_rethink_get_base_vars()
+{
 	var rect = $("admin").getBoundingClientRect();
 	app.admin_area_width = Math.floor(rect.right - rect.left);
 	app.admin_area_height = Math.floor(rect.bottom - rect.top);
 	app.admin_cell_count = Object.keys(app.admin_cells).length;
+}
 
+function admin_rethink_find_best_side()
+{
 	var cell_side = app.admin_area_width;
 	var jump = (cell_side + 5) / 2;
 	var best_slack = -1;
@@ -143,11 +159,21 @@ function admin_rethink()
 		}
 
 		jump = jump / 2;
-
 	}
+}
 
-	app.admin_cell_height = app.admin_best_cell_side;
+function admin_rethink_calc_slack(cell_side)
+{
+	var column_count = Math.floor(app.admin_area_width / cell_side);
+	if (column_count < 1) return -1;
 
+	var required_row_count = Math.ceil(app.admin_cell_count / column_count);
+	var slack = app.admin_area_height - (cell_side * required_row_count);
+	return slack;
+}
+
+function admin_rethink_adjust_width()
+{
 	var column_count = Math.floor(app.admin_area_width / app.admin_best_cell_side) ;
 	var cell_extra_width = admin_rethink_calc_extra_width(column_count);
 
@@ -161,18 +187,7 @@ function admin_rethink()
 		cell_extra_width = admin_rethink_calc_extra_width(column_count - 1);
 	}
 
-	app.admin_cell_width = app.admin_best_cell_side + cell_extra_width;
-
-}
-
-function admin_rethink_calc_slack(cell_side)
-{
-	var column_count = Math.floor(app.admin_area_width / cell_side);
-	if (column_count < 1) return -1;
-
-	var required_row_count = Math.ceil(app.admin_cell_count / column_count);
-	var slack = app.admin_area_height - (cell_side * required_row_count);
-	return slack;
+	return cell_extra_width;
 }
 
 function admin_rethink_calc_extra_width(column_count)

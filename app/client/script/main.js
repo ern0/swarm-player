@@ -4,8 +4,13 @@ CLOCK_SKEW = 100;
 
 MAGIC_AUDIO_LAG_FACTOR = 2.5;
 
+ADMIN_CELL_MARGIN = 2;
+ADMIN_CELL_BORDER = 2;
+ADMIN_CELL_AURA = (2 * ADMIN_CELL_MARGIN) + (2 * ADMIN_CELL_BORDER);
+
 HEARTBEAT_TIMING_S = [0.3, 10];
 CLOCK_SYNC_TIMING_S = [0, 0.5, 2, 5, 30];
+
 
 document.addEventListener("DOMContentLoaded", function() {
 	main(false);
