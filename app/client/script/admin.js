@@ -65,7 +65,7 @@ function admin_socket_close()
 	//TODO: gray out all cells or something
 }
 
-function mk_elm_id(id)
+function mk_cell_id(id)
 {
 	return "cell_" + id;
 }
@@ -77,7 +77,7 @@ function admin_add_self()
 
 function admin_elm_self()
 {
-	var elm_id = mk_elm_id(app.client_id);
+	var elm_id = mk_cell_id(app.client_id);
 	return $(elm_id);
 }
 
@@ -90,7 +90,7 @@ function admin_repaint()
 
 function admin_repaint_cell(id)
 {
-	var elm_id = mk_elm_id(id);
+	var elm_id = mk_cell_id(id);
 	var elm = $(elm_id);
 	if (elm == null) elm = admin_create_cell(elm_id);
 
@@ -98,9 +98,13 @@ function admin_repaint_cell(id)
 	elm.style.width = (app.admin_cell_width - ADMIN_CELL_AURA) + "px";
 	elm.style.height = (app.admin_cell_height - ADMIN_CELL_AURA) + "px";
 
-	//var cell_pos = app.admin_cells[id];
-	//elm.style.left = cell_pos[0] + "px";
-	//elm.style.top = cell_pos[1] + "px";
+	var cell_pos = app.admin_cells[id];
+	elm.style.left = cell_pos[0] + "px";
+	elm.style.top = cell_pos[1] + "px";
+
+	var t = Math.random();
+	var d = Math.random();
+	elm.style.transition = "all " + t + "s linear " + d + "s";
 }
 
 function admin_create_cell(elm_id)
@@ -121,6 +125,8 @@ function admin_rethink()
 
 	var cell_extra_width = admin_rethink_adjust_width();
 	app.admin_cell_width = app.admin_best_cell_side + cell_extra_width;
+
+	admin_rethink_renumber();
 }
 
 function admin_rethink_get_base_vars()
@@ -199,6 +205,25 @@ function admin_rethink_calc_extra_width(column_count)
 	return cell_extra_width;
 }
 
+function admin_rethink_renumber()
+{
+	var column_count = Math.floor(app.admin_area_width / app.admin_best_cell_side);
+
+	var x = 0;
+	var y = 0;
+	for (var id in app.admin_cells) {
+
+		app.admin_cells[id] = [
+			x * app.admin_cell_width, 
+			y * app.admin_cell_height]; 
+
+		x++;
+		if (x < column_count) continue;
+		x = 0;
+		y++;
+	}
+}
+
 function mk_cell_dim()
 {
 	return app.adm_cell_width + "x" + app.adm_cell_height;
@@ -214,7 +239,7 @@ function admin_add(id)
 function admin_remove(id)
 {
 	delete app.admin_cells[id];
-	$(mk_elm_id(id)).remove();
+	$(mk_cell_id(id)).remove();
 	admin_rethink();
 	admin_repaint();
 }
