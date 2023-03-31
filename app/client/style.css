@@ -39,6 +39,12 @@ body, button {
 	position: relative;
 }
 
+.admin-title {
+	text-align: center;
+	background: #003399;
+	color: #eeeeff;
+}
+
 .cell {
 	display: inline-block;
 	border: 2px solid #000044;

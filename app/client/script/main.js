@@ -90,7 +90,9 @@ function process_packet_now(packet)
 	}
 
 	if (packet.type == "RELOAD") {
-		document.location.reload();
+		if (!app.is_admin) {
+			document.location.reload();
+		}
 	}
 
 	if (packet.type == "DISPLAY") {
