@@ -15,7 +15,9 @@ export host=`ifconfig | grep 192 | cut -d' ' -f2`
 if [ -z $host ]; then
 	export host=`ifconfig | grep "inet 10" | cut -d't' -f2 | cut -d' ' -f2`
 fi
-export host="192.168.12.206"
+
+echo Host address: $host
+
 export started=`date -Iminutes | cut -d"T" -f2 | cut -d"+" -f1`
 export pwd=`pwd`
 export cert_crt=`pwd`/cert.crt

@@ -11,7 +11,6 @@ ADMIN_CELL_AURA = (2 * ADMIN_CELL_MARGIN) + (2 * ADMIN_CELL_BORDER);
 HEARTBEAT_TIMING_S = [0.3, 10];
 CLOCK_SYNC_TIMING_S = [0, 0.5, 2, 5, 30];
 
-
 document.addEventListener("DOMContentLoaded", function() {
 	main(false);
 });
@@ -90,7 +89,9 @@ function process_packet_now(packet)
 	}
 
 	if (packet.type == "RELOAD") {
-		if (!app.is_admin) {
+		if (app.is_admin) {
+			document.location = document.location.href + "/admin"
+		} else {
 			document.location.reload();
 		}
 	}
