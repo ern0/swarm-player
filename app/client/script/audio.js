@@ -1,5 +1,6 @@
 function init_audio()
 {
+
 	app.aucx = new AudioContext();
 
 	if (app.aucx.state == "suspended") {

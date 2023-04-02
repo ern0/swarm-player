@@ -68,7 +68,7 @@ function admin_socket_close()
 
 function mk_cell_id(id, token)
 {
-	return token + "_" + id;
+	return "admin_" + token + "_" + id;
 }
 
 function admin_add_self() 
@@ -104,10 +104,20 @@ function admin_repaint_cell(id)
 
 function admin_repaint_cell_template(elm, id)
 {
-	var title_elm = document.createElement("div");
-	title_elm.className = "admin-title";
-	title_elm.id = mk_cell_id(id, "title");
-	elm.appendChild(title_elm);
+	admin_repaint_cell_tpl_elm(elm, id, "title");
+	var area_elm = admin_repaint_cell_tpl_elm(elm, id, "area");
+	admin_repaint_cell_tpl_elm(area_elm, id, "skew");
+	admin_repaint_cell_tpl_elm(area_elm, id, "lag");
+}
+
+function admin_repaint_cell_tpl_elm(elm, id, item)
+{
+	var item_elm = document.createElement("div");
+	item_elm.className = "admin-" + item;
+	item_elm.id = mk_cell_id(id, item);
+	elm.appendChild(item_elm);
+
+	return item_elm;
 }
 
 function admin_repaint_cell_design(elm, id)
@@ -118,7 +128,14 @@ function admin_repaint_cell_design(elm, id)
 	var cell_pos = app.admin_cells[id];
 	elm.style.left = cell_pos[0] + "px";
 	elm.style.top = cell_pos[1] + "px";
-	elm.style.opacity = cell_pos[2];
+
+	var title_font_size = app.admin_cell_height * 0.2;
+	var title_elm = $(mk_cell_id(id, "title"));
+	title_elm.style.fontSize = title_font_size + "px";
+
+	var area_font_size = app.admin_cell_height * 0.15;
+	var area_elm = $(mk_cell_id(id, "area"));
+	area_elm.style.fontSize = area_font_size + "px";
 
 	var duration = 0.3 + Math.random() * 0.2;
 	var opacity_duration = duration + 0.4;
@@ -133,13 +150,20 @@ function admin_repaint_cell_content(elm, id)
 {
 	var title_elm = $(mk_cell_id(id, "title"));
 	title_elm.innerHTML = id;
+
+	var skew_elm = $(mk_cell_id(id, "skew"));
+	skew_elm.innerHTML = "S: 344";
+
+	var lag_elm = $(mk_cell_id(id, "lag"));
+	lag_elm.innerHTML = "L: 3";
+
 }
 
 function admin_create_cell(elm_id)
 {
 	var elm = document.createElement("div");
 	elm.id = elm_id;
-	elm.classList.add("cell");
+	elm.classList.add("admin-cell");
 	$("admin").appendChild(elm);
 
 	return elm;
@@ -287,7 +311,7 @@ function admin_remove(id)
 
 	var cell = $(mk_cell_id(id, "cell"));
 	if (cell == null) return;
-	cell.classList.add("uncell");
+	cell.classList.add("admin-uncell");
 	var title = $(mk_cell_id(id, "title"));
 	title.classList.add("admin-untitle");
 
