@@ -1,7 +1,7 @@
 
 body, button { 
 	font-family: sans-serif; 
-	font-size: 5vh; 
+	font-size: 5vw; 
 }
 
 #awake { 
@@ -44,6 +44,11 @@ body, button {
 	color: #eeeeff;
 }
 
+.admin-untitle {
+	background: #993300;
+	color: #ffeeee;
+}
+
 .cell {
 	display: inline-block;
 	position: absolute;
@@ -52,6 +57,12 @@ body, button {
 	background: #eeeeff;
 	color: #003399;
 	text-align: center;
+}
+
+.uncell {
+	border: 2px solid #440000;
+	background: #ffeeee;
+	color: #993300;
 }
 
 #client { 
