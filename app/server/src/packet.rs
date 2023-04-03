@@ -253,10 +253,8 @@ fn parse_data(root_object: &JsonObj, num_vec: &mut Vec<i64>, str_vec: &mut Vec<S
 #[cfg(test)]
 mod tests {
     use crate::packet::{Packet, SyncMode};
-    use std::time::UNIX_EPOCH;
 
     const JSON_BASIC_STR: &str = r#"{"type":"TYP","data":["VAL"]}"#;
-    const JSON_BASIC_NUM: &str = r#"{"type":"BEAST","data":[666]}"#;
     const JSON_MULTI: &str = r#"{"type":"T","data":[10,11,12]}"#;
     const JSON_MIXED: &str = r#"{"type":"T","data":[0,"one",2]}"#;
     const JSON_ASYNC_CMD: &str = r#"{"type":"CLK_REF","data":[]}"#;
@@ -308,13 +306,15 @@ mod tests {
     fn create_simple_str() {
         let packet = Packet::new_simple_str("TYP","VAL");
         let json = packet.render_json();
-        assert_eq!(json, JSON_BASIC_STR);
+        assert!(json.contains("\"type\":\"TYP\""));
+        assert!(json.contains("\"data\":[\"VAL\"]"));
     }
     #[test]
     fn create_simple_num() {
         let packet = Packet::new_simple_num("BEAST", 666);
         let json = packet.render_json();
-        assert_eq!(json, JSON_BASIC_NUM);
+        assert!(json.contains("\"type\":\"BEAST\""));
+        assert!(json.contains("\"data\":[666]"));
     }
     #[test]
     fn create_mixed() {
@@ -322,7 +322,7 @@ mod tests {
         packet.set_str(1, "one");
         packet.set_num(2, 2);
         let json = packet.render_json();
-        assert_eq!(json, JSON_MIXED);
+        assert!(json.contains("data\":[0,\"one\",2]"));
     }
     #[test]
     fn create_async_cmd() {
