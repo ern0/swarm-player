@@ -55,6 +55,8 @@ function admin_socket_open()
 { 
 	if (!app.is_admin) return;
 
+	send("MASTER", []);
+
 	for (var cell in app.admin_cells) {
 		admin_remove(cell);
 	}
