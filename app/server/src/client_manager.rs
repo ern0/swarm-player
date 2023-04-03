@@ -1,4 +1,4 @@
-//#![allow(unused)]
+#![allow(unused)]
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -7,12 +7,14 @@ use std::time::Duration;
 use std::thread::{sleep, spawn};
 use std::sync::{Arc, RwLock};
 use simple_websockets::{Event, Message, Responder};
-use crate::utils::{now_string, millis_to_string, ClientList};
+use crate::utils::{now_string, millis_to_string};
+use crate::utils::{SharedClient, SharedClientList};
 use crate::client::Client;
 use crate::packet::Packet;
 
 pub struct ClientManager {
-    clients: ClientList,
+    clients: SharedClientList,
+    ////master_client: SharedClient,
     debug: bool,
 }
 
@@ -20,9 +22,13 @@ impl ClientManager {
 
     pub fn new() -> Self {
 
+        let hash_map: HashMap<u64, SharedClient> = HashMap::new();
+        let lock = RwLock::new(hash_map);
+        let clients = Arc::new(lock);
+
         return ClientManager {
             debug: false,
-            clients: Arc::new(RwLock::new(HashMap::new())),
+            clients,
         };
     }
 
@@ -49,8 +55,9 @@ impl ClientManager {
         }
 
         let hash_map = self.clients.read().unwrap();
-        for (_id, client) in hash_map.iter() {
+        for (_id, shared_client) in hash_map.iter() {
             let message = Message::Text(text_immutable.clone());
+            let client = shared_client.write().unwrap();
             client.responder.send(message);
         }
         
@@ -89,13 +96,15 @@ impl ClientManager {
             now_string(),
             );
 
-        let arc = self.clients.clone();
-        let client = Client::new(arc, client_id, responder, self.debug);
+        let shared_clients = self.clients.clone();
+        let client = Client::new(shared_clients, client_id, responder, self.debug);
 
         let packet = Packet::new_simple_num("ID", client_id as i64);
         client.send_packet(&packet);
 
-        self.clients.write().unwrap().insert(client.id, client);
+        let shared_client = Arc::new(RwLock::new((client)));
+        let mut hash_map = self.clients.write().unwrap();
+        hash_map.insert(client_id, shared_client);
 
     }
 
@@ -107,7 +116,8 @@ impl ClientManager {
             now_string(),
             );
 
-        self.clients.write().unwrap().remove(&client_id);
+        let mut hash_map = self.clients.write().unwrap();
+        hash_map.remove(&client_id);
     }
 
     fn on_message(&self, client_id: u64, message: Message) {
@@ -139,12 +149,33 @@ impl ClientManager {
                 },
 
                 _ => {
-                    let mut hash_map = self.clients.write().unwrap();
-                    let client: &mut Client = hash_map.get_mut(&client_id).unwrap();
-                    client.process_incoming_message(&packet);
+                    self.process_incoming_message(client_id, &packet);
                 },
 
             }
+        }
+
+    }
+
+    fn process_incoming_message(&self, client_id: u64, packet: &Packet) {
+
+        let hash_map = self.clients.read().unwrap();
+        let shared_client = hash_map.get(&client_id).unwrap();
+
+        match packet.get_type().as_str() {
+            "CLK_0" => {
+                let client = shared_client.read().unwrap();
+                client.process_request_clk0();
+            },            
+            "ADMIN" => {
+                let mut client = shared_client.write().unwrap();
+                client.process_report_admin();
+            },
+            "AUDIO" => {
+                let mut client = shared_client.write().unwrap();
+                client.process_report_audio(&packet);
+            },
+            _ => {},
         }
 
     }

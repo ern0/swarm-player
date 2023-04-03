@@ -8,7 +8,9 @@ use crate::client::Client;
 
 pub const STAMP_OFFSET_MS: i64 = 500;  //TODO: change to prod value
 pub const UNDEF: i64 = i64::MAX;
-pub type ClientList = Arc<RwLock<HashMap<u64, Client>>>;
+
+pub type SharedClient = Arc<RwLock<Client>>;
+pub type SharedClientList = Arc<RwLock<HashMap<u64, SharedClient>>>;
 
 pub fn systime_to_millis(stamp: SystemTime) -> i64 {
 
