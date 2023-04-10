@@ -87,7 +87,7 @@ function send_audio_lag()
 {
 	if (app.report_audio_lag != REPORT_TO_SEND) return;
 
-	var success = send("AUDIO", [app.audio_lag]);
+	var success = send("AUDIO_LAG", [app.audio_lag]);
 
 	if (success) {
 		app.report_audio_lag = REPORT_SENT;

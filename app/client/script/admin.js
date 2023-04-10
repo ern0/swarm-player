@@ -194,6 +194,8 @@ function admin_report(packet)
 {
 	var id = packet.data[0];
 
+	console.log("report", id, packet);
+
 	// server data reporting is slower than client list reporting
 	if (!(id in app.admin_cells)) return;
 

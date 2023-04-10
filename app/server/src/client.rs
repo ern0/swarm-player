@@ -80,4 +80,21 @@ impl Client {
             );
     }
 
+    pub fn report(&self) {
+
+        let mut packet = Packet::new();
+        packet.set_type("REPORT");
+
+        packet.set_num(0, self.id as i64);
+
+        packet.set_num(1, 333);
+
+        packet.set_num(2, self.lag);  //TODO: set as string if n.a.
+
+        let channel_mask = 0x00;
+        packet.set_num(3, channel_mask);
+        
+        self.send_packet(&packet);
+    }
+
 }
