@@ -256,10 +256,18 @@ impl ClientManager {
 
         let mut packet = Packet::new();
         packet.set_type("REPORT");
-        packet.set_num(0, 1000);
-        packet.set_num(1, 300);
-        packet.set_num(2, 3);
-        packet.set_num(3, 0);
+
+        let id = 1000;
+        packet.set_num(0, id);
+
+        let clock_skew = 300;
+        packet.set_num(1, clock_skew);
+
+        let audio_lag = 3;
+        packet.set_num(2, audio_lag);
+
+        let channel_mask = 0x00;
+        packet.set_num(3, channel_mask);
         
         let client = shared_client.read().unwrap();
         client.send_packet(&packet);

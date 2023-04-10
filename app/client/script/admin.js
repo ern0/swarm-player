@@ -1,4 +1,3 @@
-
 function init_admin() 
 {
 	if (!app.is_admin) return;
@@ -61,7 +60,10 @@ function admin_socket_open()
 		admin_remove(cell);
 	}
 
-	for (var i = 1000; i < 1080; i++) app.admin_cells[i] = null;
+	// TODO: this is only temporary
+	for (var i = 1000; i < 1080; i++) {
+		app.admin_cells[i] = { "x": 0, "y": 0, "skew": "-", "lag": "-", "channels": 0 };
+	}
 
 }
 
@@ -96,44 +98,33 @@ function admin_repaint()
 
 function admin_repaint_cell(id)
 {
-	var elm_id = mk_cell_id(id, "cell");
-	var elm = $(elm_id);
+	var cell_data = app.admin_cells[id];
+
+	var elm = $(mk_cell_id(id, "cell"));
 	if (elm == null) {
-		elm = admin_create_cell(elm_id);
-		admin_repaint_cell_template(elm, id);
+		elm = admin_create_cell(id);
 	}
-
-	admin_repaint_cell_design(elm, id);
-	admin_repaint_cell_content(elm, id);
+	
+	admin_repaint_cell_box(cell_data, elm);
+	admin_repaint_cell_font(id);
+	admin_repaint_cell_transition(elm);
+	admin_repaint_cell_field_title(id);
+	admin_repaint_cell_field_skew(id, cell_data);
+	admin_repaint_cell_field_lag(id, cell_data);
+	admin_repaint_cell_field_channels(id, cell_data);
 }
 
-function admin_repaint_cell_template(elm, id)
-{
-	admin_repaint_cell_tpl_elm(elm, id, "title");
-	var area_elm = admin_repaint_cell_tpl_elm(elm, id, "area");
-	admin_repaint_cell_tpl_elm(area_elm, id, "skew");
-	admin_repaint_cell_tpl_elm(area_elm, id, "lag");
-}
-
-function admin_repaint_cell_tpl_elm(elm, id, item)
-{
-	var item_elm = document.createElement("div");
-	item_elm.className = "admin-" + item;
-	item_elm.id = mk_cell_id(id, item);
-	elm.appendChild(item_elm);
-
-	return item_elm;
-}
-
-function admin_repaint_cell_design(elm, id)
+function admin_repaint_cell_box(cell_data, elm)
 {
 	elm.style.width = (app.admin_cell_width - ADMIN_CELL_AURA) + "px";
 	elm.style.height = (app.admin_cell_height - ADMIN_CELL_AURA) + "px";
 
-	var cell_pos = app.admin_cells[id];
-	elm.style.left = cell_pos[0] + "px";
-	elm.style.top = cell_pos[1] + "px";
+	elm.style.left = cell_data["x"] + "px";
+	elm.style.top = cell_data["y"] + "px";
+}
 
+function admin_repaint_cell_font(id) 
+{
 	var title_font_size = app.admin_cell_height * 0.2;
 	var title_elm = $(mk_cell_id(id, "title"));
 	title_elm.style.fontSize = title_font_size + "px";
@@ -141,7 +132,10 @@ function admin_repaint_cell_design(elm, id)
 	var area_font_size = app.admin_cell_height * 0.15;
 	var area_elm = $(mk_cell_id(id, "area"));
 	area_elm.style.fontSize = area_font_size + "px";
+}
 
+function admin_repaint_cell_transition(elm)
+{
 	var duration = 0.3 + Math.random() * 0.2;
 	var opacity_duration = duration + 0.4;
 	var delay = Math.random() * 0.1;
@@ -151,27 +145,90 @@ function admin_repaint_cell_design(elm, id)
 		"opacity " + (opacity_duration) + "s ease-in");
 }
 
-function admin_repaint_cell_content(elm, id)
+function admin_repaint_cell_field_title(id)
 {
 	var title_elm = $(mk_cell_id(id, "title"));
 	title_elm.innerHTML = id;
-
-	var skew_elm = $(mk_cell_id(id, "skew"));
-	skew_elm.innerHTML = "S: 344";
-
-	var lag_elm = $(mk_cell_id(id, "lag"));
-	lag_elm.innerHTML = "L: 3";
-
 }
 
-function admin_create_cell(elm_id)
+function admin_repaint_cell_field_skew(id, cell_data)
+{
+	var skew = cell_data["skew"];
+	var skew_elm = $(mk_cell_id(id, "skew"));
+	skew_elm.innerHTML = "S: " + skew;
+
+	if (skew == "-") return;
+
+	skew_elm.classList.remove("admin-line-undef");
+
+	if (Math.abs(skew) < ADMIN_SKEW_WARNING) {
+		skew_elm.classList.remove("admin-line-skew-warning");
+	} else {
+		skew_elm.classList.add("admin-line-skew-warning");
+	}
+}
+
+function admin_repaint_cell_field_lag(id, cell_data)
+{
+	var lag = cell_data["lag"];
+	var lag_elm = $(mk_cell_id(id, "lag"));
+	lag_elm.innerHTML = "L: " + lag;
+
+	if (lag == "-") return;
+
+	lag_elm.classList.remove("admin-line-undef");
+
+	if (lag < ADMIN_LAG_WARNING) {
+		lag_elm.classList.remove("admin-line-lag-warning");
+	} else {
+		lag_elm.classList.add("admin-line-lag-warning");
+	}	
+}
+
+function admin_repaint_cell_field_channels(id, cell_data)
+{
+	//TODO
+}
+
+function admin_report(packet)
+{
+	var id = packet.data[0];
+
+	// server data reporting is slower than client list reporting
+	if (!(id in app.admin_cells)) return;
+
+	app.admin_cells[id]["skew"] = packet.data[1];
+	app.admin_cells[id]["lag"] = packet.data[2];
+	app.admin_cells[id]["channels"] = packet.data[3];
+
+	admin_repaint_cell(id);
+}
+
+function admin_create_cell(id)
 {
 	var elm = document.createElement("div");
-	elm.id = elm_id;
+	elm.id = mk_cell_id(id, "cell");
 	elm.classList.add("admin-cell");
 	$("admin").appendChild(elm);
 
+	admin_create_cell_elm(elm, id, "title");
+	var area_elm = admin_create_cell_elm(elm, id, "area");
+	var skew_elm = admin_create_cell_elm(area_elm, id, "skew");
+	skew_elm.classList.add("admin-line-undef");
+	var lag_elm = admin_create_cell_elm(area_elm, id, "lag");
+	lag_elm.classList.add("admin-line-undef");
+
 	return elm;
+}
+
+function admin_create_cell_elm(elm, id, item_name)
+{
+	var item_elm = document.createElement("div");
+	item_elm.className = "admin-" + item_name;
+	item_elm.id = mk_cell_id(id, item_name);
+	elm.appendChild(item_elm);
+
+	return item_elm;
 }
 
 function admin_rethink() 
@@ -183,7 +240,7 @@ function admin_rethink()
 	var cell_extra_width = admin_rethink_adjust_width();
 	app.admin_cell_width = app.admin_best_cell_side + cell_extra_width;
 
-	admin_rethink_renumber();
+	admin_rethink_recalc_coords();
 }
 
 function admin_rethink_get_base_vars()
@@ -266,7 +323,7 @@ function admin_rethink_calc_extra_width(column_count)
 	return cell_extra_width;
 }
 
-function admin_rethink_renumber()
+function admin_rethink_recalc_coords()
 {
 	var x = 0;
 	var y = 0;
@@ -274,7 +331,8 @@ function admin_rethink_renumber()
 
 	for (var id in app.admin_cells) {
 
-		app.admin_cells[id] = [x, y, 1];
+		app.admin_cells[id]["x"] = x;
+		app.admin_cells[id]["y"] = y;
 
 		x = next_x;
 		next_x += app.admin_cell_width;
@@ -299,7 +357,7 @@ function admin_add(id)
 
 	var x = (app.admin_area_width - app.admin_cell_width) / 2;
 	var y = (app.admin_area_height - app.admin_cell_height) / 2;
-	app.admin_cells[id] = [x, y, 0];
+	app.admin_cells[id] = { "x": x, "y": y, "skew": "-", "lag": "-", "channels": 0 };
 	admin_repaint();
 
 	var cell = $(mk_cell_id(id, "cell"));
