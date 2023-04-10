@@ -110,6 +110,8 @@ function set_beep_freq()
 
 function beep(delay_ms)
 {
+	if (app.aucx.state == "suspended") return;
+
 	var f1 = Math.round(app.frequency * 0.99)|0;
 	var f2 = Math.round(app.frequency * 1.01)|0;
 

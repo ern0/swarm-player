@@ -61,7 +61,7 @@ function admin_socket_open()
 	}
 
 	// TODO: this is only temporary
-	for (var i = 1000; i < 1080; i++) {
+	if (false) for (var i = 1000; i < 1080; i++) {
 		app.admin_cells[i] = { "x": 0, "y": 0, "skew": "-", "lag": "-", "channels": 0 };
 	}
 
