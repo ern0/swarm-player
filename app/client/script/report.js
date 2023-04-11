@@ -6,6 +6,7 @@ function init_report()
 {
 	app.report_retry_timeout = null;
 	app.report_is_admin = REPORT_UNSET;
+	app.report_clock_skew = REPORT_UNSET;
 	app.report_audio_lag = REPORT_UNSET;
 }
 
@@ -13,6 +14,10 @@ function reset_report()
 {
 	if (app.is_admin != REPORT_UNSET) {
 		app.is_admin = REPORT_TO_SEND;
+	}
+
+	if (app.report_clock_skew != REPORT_UNSET) {
+		app.report_clock_skew = REPORT_TO_SEND;
 	}
 
 	if (app.report_audio_lag != REPORT_UNSET) {
@@ -30,6 +35,7 @@ function reset_report()
 function report_all() 
 {
 	send_is_admin();
+	send_clock_skew();
 	send_audio_lag();
 	retry_report_if_needed();
 }
@@ -38,6 +44,7 @@ function retry_report_if_needed()
 {
 	var retry = false;
 	if (app.is_admin == REPORT_TO_SEND) retry = true;
+	if (app.report_clock_skew == REPORT_TO_SEND) retry = true;
 	if (app.report_audio_lag == REPORT_TO_SEND) retry = true;
 	
 	if (retry) retry_report();
@@ -74,6 +81,24 @@ function send_is_admin()
 		app.report_is_admin = REPORT_SENT;		
 	}
 
+}
+
+function report_clock_skew()
+{
+	app.report_clock_skew = REPORT_TO_SEND;
+	send_clock_skew();
+	retry_report_if_needed();
+}
+
+function send_clock_skew()
+{
+	if (app.report_clock_skew != REPORT_TO_SEND) return;
+
+	var success = send("CLOCK_SKEW", [app.clock_skew]);
+
+	if (success) {
+		app.report_clock_skew = REPORT_SENT;
+	}
 }
 
 function report_audio_lag()

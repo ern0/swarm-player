@@ -8,10 +8,10 @@ use crate::packet::Packet;
 pub struct Client {
     pub clients: SharedClientList,
     pub id: u64,
-    pub lag: i64,
+    pub clock_skew: Option<i64>,
+    pub audio_lag: Option<i64>,
     pub responder: Responder,
     pub debug: bool,
-    pub epoch: SystemTime,
 }
 
 impl Client {
@@ -21,10 +21,10 @@ impl Client {
         return Client {
             clients: clients,
             id: id,
-            lag: 0,
+            clock_skew: None,
+            audio_lag: None,            
             responder: responder,
             debug: debug,
-            epoch: SystemTime::now(),
         };
     }
 
@@ -68,15 +68,29 @@ impl Client {
             );
     }
 
-    pub fn process_report_audio(&mut self, packet: &Packet) {
+    pub fn process_report_clock_skew(&mut self, packet: &Packet) {
 
-        self.lag = packet.get_num(0);
+        let value = packet.get_num(0);
+        self.clock_skew = Some(value);
+
+        println!(
+            "[{}] {}: clock skew: {} ms", 
+            self.id,
+            now_string(),
+            value,
+            );
+    }
+
+    pub fn process_report_audio_lag(&mut self, packet: &Packet) {
+
+        let value = packet.get_num(0);
+        self.audio_lag = Some(value);
 
         println!(
             "[{}] {}: audio lag: {} ms", 
             self.id,
             now_string(),
-            self.lag,
+            value,
             );
     }
 
@@ -87,9 +101,15 @@ impl Client {
 
         packet.set_num(0, self.id as i64);
 
-        packet.set_num(1, 333);
+        match self.clock_skew {
+            Some(value) => packet.set_num(1, value),
+            None => packet.set_str(1, "-"),
+        };
 
-        packet.set_num(2, self.lag);  //TODO: set as string if n.a.
+        match self.audio_lag {
+            Some(value) => packet.set_num(2, value),
+            None => packet.set_str(2, "-"),
+        };
 
         let channel_mask = 0x00;
         packet.set_num(3, channel_mask);

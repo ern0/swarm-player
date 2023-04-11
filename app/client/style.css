@@ -44,6 +44,9 @@ body, button {
 	background: #eeeeff;
 	border: 1px solid #003399;
 }
+.admin-cell-inactive {
+	background: #ff9999;
+}
 
 .admin-uncell {
 	border: 1px solid #003399;
@@ -68,25 +71,32 @@ body, button {
 	text-align: left;
 	font-family: 'Fira Code', Courier, monospace;
 	font-weight: bold;
-	padding: 2px;
+	padding: 0;
 }
 
 .admin-unarea {
 	color: #993300;
 }
 
+.admin-line-skew-undef {
+	color: #666666;
+	opacity: 0.3;
+}
+
 .admin-line-skew-warning {
 	color: #330000;
 	background: #ffcc66;
+	opacity: 1;
+}
+
+.admin-line-lag-inactive {
+	color: #000000;
+	background: #ee3333;
 }
 
 .admin-line-lag-warning {
 	color: #330000;
 	background: #ff9999;
-}
-
-.admin-line-undef {
-	color: #aabbdd;
 }
 
 #client { 
