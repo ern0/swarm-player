@@ -78,8 +78,13 @@ body, button {
 	color: #993300;
 }
 
+.admin-line {
+	padding-left: 1.5vmin;
+}
+
 .admin-line-skew-undef {
 	color: #666666;
+	background: #cccccc;
 	opacity: 0.3;
 }
 
@@ -90,8 +95,8 @@ body, button {
 }
 
 .admin-line-lag-inactive {
-	color: #000000;
-	background: #ee3333;
+	color: #666666;
+	opacity: 0.3;	
 }
 
 .admin-line-lag-warning {

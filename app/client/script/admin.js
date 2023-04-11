@@ -107,7 +107,7 @@ function admin_repaint_cell(id)
 	
 	admin_repaint_cell_box(cell_data, elm);
 	admin_repaint_cell_font(id);
-	admin_repaint_cell_transition(elm);
+	admin_repaint_cell_transition(elm, id);
 	admin_repaint_cell_field_title(id);
 	admin_repaint_cell_field_skew(id, cell_data);
 	admin_repaint_cell_field_lag(id, cell_data, elm);
@@ -134,15 +134,21 @@ function admin_repaint_cell_font(id)
 	area_elm.style.fontSize = area_font_size + "px";
 }
 
-function admin_repaint_cell_transition(elm)
+function admin_repaint_cell_transition(elm, id)
 {
 	var duration = 0.3 + Math.random() * 0.2;
 	var opacity_duration = duration + 0.4;
 	var delay = Math.random() * 0.1;
-	elm.style.transition = (
+
+	var transition = (
 		"all " + (duration) + "s ease-out " + (delay) + "s, " +
 		"font-size " + (duration) + "s linear " + (delay) + "s, " +
 		"opacity " + (opacity_duration) + "s ease-in");
+
+	elm.style.transition = transition;
+	$(mk_cell_id(id, "skew")).style.transition = transition;
+	$(mk_cell_id(id, "lag")).style.transition = transition;
+	
 }
 
 function admin_repaint_cell_field_title(id)
@@ -155,11 +161,12 @@ function admin_repaint_cell_field_skew(id, cell_data)
 {
 	var skew = cell_data["skew"];
 	var skew_elm = $(mk_cell_id(id, "skew"));
+	skew_elm.classList.add("admin-line");
 	skew_elm.innerHTML = "S: " + skew;
 
 	if (skew == "-") return;
 
-	skew_elm.classList.remove("admin-line-undef");
+	skew_elm.classList.remove("admin-line-skew-undef");
 
 	if (Math.abs(skew) < ADMIN_SKEW_WARNING) {
 		skew_elm.classList.remove("admin-line-skew-warning");
@@ -172,6 +179,7 @@ function admin_repaint_cell_field_lag(id, cell_data, elm)
 {
 	var lag = cell_data["lag"];
 	var lag_elm = $(mk_cell_id(id, "lag"));
+	lag_elm.classList.add("admin-line");
 	lag_elm.innerHTML = "L: " + lag;
 
 	if (lag == "-") return;
