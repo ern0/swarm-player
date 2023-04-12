@@ -16,7 +16,6 @@ pub struct ClientManager {
     clients: SharedClientList,
     master_client: Arc<RwLock<Option<SharedClient>>>,
     master_client_id: Mutex<Option<u64>>,
-    master_client_reset: bool,
     debug: bool,
 }
 
@@ -39,7 +38,6 @@ impl ClientManager {
             clients,
             master_client,
             master_client_id,
-            master_client_reset: true,
             debug: false,
         };
     }
@@ -235,6 +233,7 @@ impl ClientManager {
             "MASTER" => {
                 self.set_master_client(shared_client);
                 self.set_master_client_id(client_id);
+
                 let client = shared_client.read().unwrap();
                 client.process_report_master();
             },
@@ -301,27 +300,67 @@ impl ClientManager {
     fn run_reporting(&self) {
 
         loop {
-            sleep(Duration::from_secs(1));
-            self.report_to_master();
+            self.wait_for_master_client();
+            self.report_to_master_client();
         }
-
     }    
 
-    fn report_to_master(&self) {
+    fn wait_for_master_client(&self) {
 
-        let lock: &RwLock<Option<SharedClient>> = &self.master_client;
-        let opt: &Option<SharedClient> = &lock.read().unwrap();
+        loop {
 
-        let shared_client = match opt {
-            Some(value) => value,
-            None => return,
-        };
+            sleep(Duration::from_secs(1));
 
-        let master_client = shared_client.read().unwrap();
+            let lock: &RwLock<Option<SharedClient>> = &self.master_client;
+            let opt: &Option<SharedClient> = &lock.read().unwrap();
+            let shared_client = match opt {
+                Some(_) => return,
+                None => continue,
+            };
 
-        //TODO: report all clients, not only the master
-        master_client.report();
+        }
+    }
 
+    fn report_to_master_client(&self) {
+
+        // TODO: report actual set or something, sleep some
+        let client_ids = self.get_client_ids_snapshot();
+
+        loop {
+
+            let lock: &RwLock<Option<SharedClient>> = &self.master_client;
+            let opt: &Option<SharedClient> = &lock.read().unwrap();
+            let shared_master_client = match opt {
+                Some(shc) => shc,
+                None => return,
+            };
+
+            for client_id in &client_ids {
+
+                let hash_map = self.clients.read().unwrap();
+                if !hash_map.contains_key(&client_id) {
+                    continue;
+                }
+
+                let shared_client = hash_map.get(&client_id).unwrap();
+                let client = shared_client.read().unwrap();
+                let packet = client.create_report();
+                let master_client = shared_master_client.read().unwrap();
+                master_client.send_packet(&packet);
+            }
+        }
+    }
+
+    fn get_client_ids_snapshot(&self) -> Vec<u64> {
+
+        let mut client_ids = Vec::new();
+
+        let hash_map = self.clients.read().unwrap();
+        for (id, _shared_client) in hash_map.iter() {
+            client_ids.push(*id);
+        }
+
+        return client_ids;
     }
 
 }

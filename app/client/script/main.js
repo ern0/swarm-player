@@ -34,7 +34,7 @@ function main()
 	reset_stat();
 	init_admin();
 
-	startup();
+	startup();``
 }
 
 function startup()
@@ -82,13 +82,29 @@ function process_packet_later(packet, delay)
 function process_packet_now(packet)
 {
 	if (packet.type == "ID") {
-		app.client_id = +packet.data[0];
-		admin_add_self();
-		display("id", app.client_id);
+		admin_add_self(packet);
 	}
 
 	if (packet.type == "CLK_REF") {
 		clock_sync_eval(packet.data[0]);
+	}
+
+	if (packet.type == "REPORT") {
+		admin_report(packet);
+	}
+
+	if (packet.type == "CONNECT") {
+		admin_connect(packet);
+	}
+
+	if (packet.type == "DISCONNECT") {
+		admin_disconnect(packet);
+	}
+
+	// unofficial commands
+
+	if (packet.type == "COLOR") {
+		flash_color(packet.data[0]);
 	}
 
 	if (packet.type == "RELOAD") {
@@ -99,12 +115,5 @@ function process_packet_now(packet)
 		}
 	}
 
-	if (packet.type == "REPORT") {
-		admin_report(packet);
-	}
-
-	if (packet.type == "COLOR") {
-		flash_color(packet.data[0]);
-	}
 
 }

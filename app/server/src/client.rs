@@ -94,7 +94,7 @@ impl Client {
             );
     }
 
-    pub fn report(&self) {
+    pub fn create_report(&self) -> Packet {
 
         let mut packet = Packet::new();
         packet.set_type("REPORT");
@@ -114,7 +114,7 @@ impl Client {
         let channel_mask = 0x00;
         packet.set_num(3, channel_mask);
         
-        self.send_packet(&packet);
+        return packet;
     }
 
 }
