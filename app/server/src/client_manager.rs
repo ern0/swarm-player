@@ -278,18 +278,18 @@ impl ClientManager {
         let stamp_string = millis_to_string(stamp_millis);
 
         println!(
-            "[{}] {}{} {}",
+            "{}{} [{}] {}",
             stamp_string, 
-            client_id, 
             delay_mark, 
+            client_id, 
             message,
             );       
         if let Err(e) = writeln!(
             file, 
-            "[{}] {}{} {}", 
+            "{}{} [{}] {}", 
             stamp_string,
-            client_id, 
             delay_mark,
+            client_id, 
             message,
             ) {
             eprintln!("*** LOG error: {}", e);
@@ -299,9 +299,7 @@ impl ClientManager {
     fn run_reporting(&self) {
 
         loop {
-            eprintln!("---- WAIT FOR MASTER ----");
             self.wait_for_master_client();
-            eprintln!("---- REPORT TO MASTER ----");
             self.report_to_master_client();
         }
     }    
@@ -324,48 +322,13 @@ impl ClientManager {
 
         loop {
 
+            // it contains at least one element: the master client
             let client_ids = self.get_client_ids_snapshot();
-            
-            for client_id in client_ids {
 
-                //self.report_to_master_single(client_id);
-
-                let lock: &RwLock<Option<SharedClient>> = &self.master_client;
-                let opt: &Option<SharedClient> = &lock.read().unwrap();               
-                let Some(shared_master_client) = opt else {
+            for client_id in client_ids {               
+                if self.report_to_master_single(client_id, first_round) {
                     return;
-                };
-
-                let mcid_opt = *self.master_client_id.lock().unwrap();
-                let Some(master_id) = mcid_opt else { 
-                    return;
-                };
-
-                let hash_map = self.clients.read().unwrap();
-                let Some(shared_client) = hash_map.get(&client_id) else {
-                    continue;
-                };
-
-                let mut client = shared_client.write().unwrap();
-
-                let should_send_report = match first_round {
-                    true => true,
-                    false => client.check_and_clear(),
-                };
-                
-                if should_send_report {
-
-                    let packet = client.create_report();
-
-                    if client_id == master_id {
-                        client.send_packet(&packet);
-                    } else {
-                        let mut master_client = shared_master_client.write().unwrap();
-                        master_client.send_packet(&packet);
-                    }
-
                 }
-
                 sleep(Duration::from_millis(200));                  
             }
 
@@ -385,4 +348,44 @@ impl ClientManager {
         return client_ids;
     }
 
+    fn report_to_master_single(&self, client_id: u64, first_round: bool) -> bool {
+
+        let lock: &RwLock<Option<SharedClient>> = &self.master_client;
+        let opt: &Option<SharedClient> = &lock.read().unwrap();               
+        let Some(shared_master_client) = opt else {
+            return true;
+        };
+
+        let mcid_opt = *self.master_client_id.lock().unwrap();
+        let Some(master_id) = mcid_opt else { 
+            return true;
+        };
+
+        let hash_map = self.clients.read().unwrap();
+        let Some(shared_client) = hash_map.get(&client_id) else {
+            return false;
+        };
+
+        let mut client = shared_client.write().unwrap();
+
+        let should_send_report = match first_round {
+            true => true,
+            false => client.check_and_clear(),
+        };
+        
+        if should_send_report {
+
+            let packet = client.create_report();
+
+            if client_id == master_id {
+                client.send_packet(&packet);
+            } else {
+                let mut master_client = shared_master_client.write().unwrap();
+                master_client.send_packet(&packet);
+            }
+
+        }
+        
+        return false;
+    }
 }

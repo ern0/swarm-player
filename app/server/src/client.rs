@@ -128,11 +128,10 @@ impl Client {
         let channel_mask = 0x00;
         packet.set_num(3, channel_mask);
 
-
         println!(
             "{} [{}]: creating report: skew={} lag={} mask={}", 
-            self.id,
             now_string(),
+            self.id,
             packet.get_str(1),
             packet.get_str(2),
             packet.get_str(3),
