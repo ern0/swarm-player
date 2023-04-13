@@ -8,9 +8,10 @@ use crate::packet::Packet;
 pub struct Client {
     pub clients: SharedClientList,
     pub id: u64,
+    pub responder: Responder,
+    pub dirty: bool,
     pub clock_skew: Option<i64>,
     pub audio_lag: Option<i64>,
-    pub responder: Responder,
     pub debug: bool,
 }
 
@@ -19,12 +20,13 @@ impl Client {
     pub fn new(clients: SharedClientList, id: u64, responder: Responder, debug: bool) -> Self {
 
         return Client {
-            clients: clients,
-            id: id,
+            clients,
+            id,
+            responder,
+            dirty: true,
             clock_skew: None,
             audio_lag: None,            
-            responder: responder,
-            debug: debug,
+            debug,
         };
     }
 
@@ -62,9 +64,9 @@ impl Client {
     pub fn process_report_master(&self) {
         
         println!(
-            "[{}] {}: master mode", 
-            self.id,
+            "{} [{}]: master mode", 
             now_string(),
+            self.id,
             );
     }
 
@@ -72,11 +74,12 @@ impl Client {
 
         let value = packet.get_num(0);
         self.clock_skew = Some(value);
+        self.dirty = true;
 
         println!(
-            "[{}] {}: clock skew: {} ms", 
-            self.id,
+            "{} [{}]: clock skew: {} ms", 
             now_string(),
+            self.id,
             value,
             );
     }
@@ -85,13 +88,24 @@ impl Client {
 
         let value = packet.get_num(0);
         self.audio_lag = Some(value);
+        self.dirty = true;
 
         println!(
-            "[{}] {}: audio lag: {} ms", 
-            self.id,
+            "{} [{}]: audio lag: {} ms", 
             now_string(),
+            self.id,
             value,
             );
+    }
+
+    pub fn check_and_clear(&mut self) -> bool {
+
+        if self.dirty {
+            self.dirty = false;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     pub fn create_report(&self) -> Packet {
@@ -113,7 +127,18 @@ impl Client {
 
         let channel_mask = 0x00;
         packet.set_num(3, channel_mask);
-        
+
+
+        println!(
+            "{} [{}]: creating report: skew={} lag={} mask={}", 
+            self.id,
+            now_string(),
+            packet.get_str(1),
+            packet.get_str(2),
+            packet.get_str(3),
+            );
+
+
         return packet;
     }
 
