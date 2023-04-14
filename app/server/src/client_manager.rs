@@ -1,4 +1,4 @@
-#![allow(unused)]
+//#![allow(unused)]
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -107,7 +107,8 @@ impl ClientManager {
             );
 
         let client = self.create_client(client_id, responder);
-        self.report_client_creation(client_id, &client);
+        self.send_id_to_client(client_id, &client);
+        self.report_client_creation(client_id);
         self.add_to_clients(client_id, client);
     }
 
@@ -119,8 +120,9 @@ impl ClientManager {
             client_id,
             );
       
+        self.report_client_destruction(client_id);
         self.remove_from_clients(client_id);
-        self.clear_master_id_on_match(client_id);
+        self.clear_master_on_match(client_id);
     }
 
     fn on_message(&self, client_id: u64, message: Message) {
@@ -168,16 +170,20 @@ impl ClientManager {
         return client;
     }
 
-    fn report_client_creation(&self, client_id: u64, client: &Client) {
+    fn send_id_to_client(&self, client_id: u64, client: &Client) {
 
         let packet = Packet::new_simple_num("ID", client_id as i64);
         client.send_packet(&packet);
 
     }
 
+    fn report_client_creation(&self, client_id: u64) {
+        self.report_client_life_event(client_id, true);
+    }
+
     fn add_to_clients(&self, client_id: u64, client: Client) {
 
-        let shared_client = Arc::new(RwLock::new((client)));
+        let shared_client = Arc::new(RwLock::new(client));
         let mut hash_map = self.clients.write().unwrap();
         hash_map.insert(client_id, shared_client);
 
@@ -190,31 +196,72 @@ impl ClientManager {
 
     }
 
+    fn report_client_destruction(&self, client_id: u64) {
+        self.report_client_life_event(client_id, false);
+    }
+
     fn set_master_client(&self, shared_client: &SharedClient) {
 
-        let mut value = self.master_client.write().unwrap();
-        *value = Some(shared_client.clone());
+        let mut guarded_opt = self.master_client.write().unwrap();
+        *guarded_opt = Some(shared_client.clone());
 
     }
 
     fn set_master_client_id(&self, client_id: u64) {
 
-        *self.master_client_id.lock().unwrap() = Some(client_id);    
+        let mut guarded_id_opt = self.master_client_id.lock().unwrap();
+        *guarded_id_opt = Some(client_id);    
 
     }
 
-    fn clear_master_id_on_match(&self, client_id: u64) {
+    fn clear_master_on_match(&self, client_id: u64) {
 
-        let mut opt: &Option<u64> = &self.master_client_id.lock().unwrap();
-
-        let master_id = match opt {
+        let mut guarded_id_opt = self.master_client_id.lock().unwrap();
+        let id_opt = *guarded_id_opt;
+        let master_id = match id_opt {
             Some(value) => value,
             None => return,
         };
 
-        if &client_id == master_id {
-            opt = &None;    
+        if master_id != client_id {
+            return;
         }
+
+        *guarded_id_opt = None;
+
+        let mut guarded_opt = self.master_client.write().unwrap();
+        *guarded_opt = None;    
+
+    }
+
+    fn report_client_life_event(&self, client_id: u64, creation: bool) {
+
+        let lock: &RwLock<Option<SharedClient>> = &self.master_client;
+        let opt: &Option<SharedClient> = &lock.read().unwrap();               
+        let Some(shared_master_client) = opt else {
+            return;
+        };
+        let master_client = shared_master_client.read().unwrap();
+
+        if !creation {
+            let mcid_opt = *self.master_client_id.lock().unwrap();
+            let Some(master_id) = mcid_opt else { 
+                return;
+            };
+            if client_id == master_id {
+                return;
+            }
+        }
+
+        let mut packet = Packet::new();
+        packet.set_type(match creation {
+            true => "CONNECT",
+            false => "DISCONNECT",
+        });
+        packet.set_num(0, client_id as i64);
+
+        master_client.send_packet(&packet);
+
     }
 
     fn process_incoming_message(&self, client_id: u64, packet: &Packet) {
@@ -272,13 +319,13 @@ impl ClientManager {
 
         let message = packet.get_str(0);
         let delay_mark = {
-            if packet.get_bool(1) { "!: >" } else { ": >" }
+            if packet.get_bool(1) { "!" } else { "" }
         };
         let stamp_millis = packet.get_num(2);
         let stamp_string = millis_to_string(stamp_millis);
 
         println!(
-            "{}{} [{}] {}",
+            "{}{} [{}]: {}",
             stamp_string, 
             delay_mark, 
             client_id, 
@@ -286,7 +333,7 @@ impl ClientManager {
             );       
         if let Err(e) = writeln!(
             file, 
-            "{}{} [{}] {}", 
+            "{}{} [{}]: {}", 
             stamp_string,
             delay_mark,
             client_id, 
@@ -325,7 +372,7 @@ impl ClientManager {
             // it contains at least one element: the master client
             let client_ids = self.get_client_ids_snapshot();
 
-            for client_id in client_ids {               
+            for client_id in client_ids {  
                 if self.report_to_master_single(client_id, first_round) {
                     return;
                 }
@@ -348,7 +395,7 @@ impl ClientManager {
         return client_ids;
     }
 
-    fn report_to_master_single(&self, client_id: u64, first_round: bool) -> bool {
+    fn report_to_master_single(&self, client_id: u64, force: bool) -> bool {
 
         let lock: &RwLock<Option<SharedClient>> = &self.master_client;
         let opt: &Option<SharedClient> = &lock.read().unwrap();               
@@ -368,19 +415,19 @@ impl ClientManager {
 
         let mut client = shared_client.write().unwrap();
 
-        let should_send_report = match first_round {
+        let should_send_report = match force {
             true => true,
             false => client.check_and_clear(),
         };
         
         if should_send_report {
 
-            let packet = client.create_report();
+            let packet = client.create_report(master_id);
 
             if client_id == master_id {
                 client.send_packet(&packet);
             } else {
-                let mut master_client = shared_master_client.write().unwrap();
+                let master_client = shared_master_client.read().unwrap();
                 master_client.send_packet(&packet);
             }
 
