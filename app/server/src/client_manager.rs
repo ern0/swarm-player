@@ -332,7 +332,7 @@ impl ClientManager {
                 sleep(Duration::from_millis(200));                  
             }
 
-            let first_round = false;
+            first_round = false;
         }
     }
 
