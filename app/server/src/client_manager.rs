@@ -399,11 +399,10 @@ impl ClientManager {
 
                 sleep(Duration::from_millis(200));                  
 
-                let conn_guard = self.master_client_connection.read().unwrap();
-                if *conn_guard == MasterClientConnectionHealth::HasBeenDisconnected {
+                if *self.master_client_connection.read().unwrap() 
+                    == MasterClientConnectionHealth::HasBeenDisconnected {
                     return;
                 }
-                drop(conn_guard);
 
             }
 
