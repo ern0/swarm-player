@@ -211,17 +211,11 @@ impl ClientManager {
     }
 
     fn set_master_client(&self, shared_client: &SharedClient) {
-
-        let mut guarded_opt = self.master_client.write().unwrap();
-        *guarded_opt = Some(shared_client.clone());
-
+        *self.master_client.write().unwrap() = Some(shared_client.clone());
     }
 
     fn set_master_client_id(&self, client_id: u64) {
-
-        let mut guarded_id_opt = self.master_client_id.lock().unwrap();
-        *guarded_id_opt = Some(client_id);    
-
+        *self.master_client_id.lock().unwrap() = Some(client_id);    
     }
 
     fn clear_master_on_match(&self, client_id: u64) {
@@ -255,8 +249,7 @@ impl ClientManager {
         let master_client = shared_master_client.read().unwrap();
 
         if !creation {
-            let mcid_opt = *self.master_client_id.lock().unwrap();
-            let Some(master_id) = mcid_opt else { 
+            let Some(master_id) = *self.master_client_id.lock().unwrap() else { 
                 return;
             };
             if client_id == master_id {
