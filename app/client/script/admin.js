@@ -130,8 +130,14 @@ function admin_repaint_cell_font(id)
 	title_elm.style.fontSize = title_font_size + "px";
 
 	var area_font_size = app.admin_cell_height * 0.15;
-	var area_elm = $(mk_cell_id(id, "area"));
-	area_elm.style.fontSize = area_font_size + "px";
+	var skew_elm = $(mk_cell_id(id, "skew"));
+	skew_elm.style.fontSize = area_font_size + "px";
+	var lag_elm = $(mk_cell_id(id, "lag"));
+	lag_elm.style.fontSize = area_font_size + "px";
+
+	var channels_font_size = app.admin_cell_height * 0.12;
+	var channels_elm = $(mk_cell_id(id, "channels"));
+	channels_elm.style.fontSize = channels_font_size + "px";
 }
 
 function admin_repaint_cell_transition(elm, id)
@@ -146,8 +152,10 @@ function admin_repaint_cell_transition(elm, id)
 		"opacity " + (opacity_duration) + "s ease-in");
 
 	elm.style.transition = transition;
+	$(mk_cell_id(id, "title")).style.transition = transition;
 	$(mk_cell_id(id, "skew")).style.transition = transition;
 	$(mk_cell_id(id, "lag")).style.transition = transition;
+	$(mk_cell_id(id, "channels")).style.transition = transition;
 	
 }
 
@@ -161,8 +169,8 @@ function admin_repaint_cell_field_skew(id, cell_data)
 {
 	var skew = cell_data["skew"];
 	var skew_elm = $(mk_cell_id(id, "skew"));
-	skew_elm.classList.add("admin-line");
-	skew_elm.innerHTML = "S: " + skew;
+	var skew_value_elm = $(mk_cell_id(id, "skew_value"));
+	skew_value_elm.innerHTML = "S: " + skew;
 
 	if (skew == "-") return;
 
@@ -179,8 +187,8 @@ function admin_repaint_cell_field_lag(id, cell_data, elm)
 {
 	var lag = cell_data["lag"];
 	var lag_elm = $(mk_cell_id(id, "lag"));
-	lag_elm.classList.add("admin-line");
-	lag_elm.innerHTML = "L: " + lag;
+	var lag_value_elm = $(mk_cell_id(id, "lag_value"));
+	lag_value_elm.innerHTML = "L: " + lag;
 
 	if (lag == "-") return;
 
@@ -196,33 +204,72 @@ function admin_repaint_cell_field_lag(id, cell_data, elm)
 
 function admin_repaint_cell_field_channels(id, cell_data)
 {
-	//TODO
+	var channels = cell_data["channels"];	
+
+	for (var ch = 0; ch < ADMIN_CELL_CHANNELS; ch++) {
+
+		var channel_value_elm = $(mk_cell_id(id, "channel_" + ch));
+		var enabled = (channels >> ch) & 1;
+		
+		if (enabled) {
+			channel_value_elm.classList.remove("channel-off");
+			channel_value_elm.classList.add("channel-on");
+		} else {
+			channel_value_elm.classList.remove("channel-on");
+			channel_value_elm.classList.add("channel-off");
+		}
+	}
+
 }
 
 function admin_create_cell(id)
 {
-	var elm = document.createElement("div");
-	elm.id = mk_cell_id(id, "cell");
-	elm.classList.add("admin-cell");
-	elm.classList.add("admin-cell-inactive");
-	$("admin").appendChild(elm);
+	var cell_elm = document.createElement("div");
+	cell_elm.id = mk_cell_id(id, "cell");
+	cell_elm.classList.add("admin-cell");
+	cell_elm.classList.add("admin-cell-inactive");
+	$("admin").appendChild(cell_elm);
 
-	admin_create_cell_elm(elm, id, "title");
-	var area_elm = admin_create_cell_elm(elm, id, "area");
-	var skew_elm = admin_create_cell_elm(area_elm, id, "skew");
+	admin_create_cell_elm(cell_elm, id, "title");
+	
+	var skew_elm = admin_create_cell_elm(cell_elm, id, "skew");
 	skew_elm.classList.add("admin-line-skew-undef");
-	var lag_elm = admin_create_cell_elm(area_elm, id, "lag");
+
+	var lag_elm = admin_create_cell_elm(cell_elm, id, "lag");
 	lag_elm.classList.add("admin-line-lag-inactive");
 
-	return elm;
+	var channels_elm = admin_create_cell_elm(cell_elm, id, "channels");
+	channels_elm_value = $(mk_cell_id(id, "channels_value"));
+	for (var ch = ADMIN_CELL_CHANNELS - 1; ch >= 0; ch--) {
+		var channel_elm = document.createElement("span");
+		channel_elm.id = mk_cell_id(id, "channel_" + ch);
+		channels_elm_value.appendChild(channel_elm);
+		channel_elm.classList.add("channel");
+		channel_elm.classList.add("channel_" + ch);
+		channel_elm.classList.add("channel-off");
+		channel_elm.innerHTML = "&#x2b24;";
+	}
+
+	return cell_elm;
 }
 
 function admin_create_cell_elm(elm, id, item_name)
 {
 	var item_elm = document.createElement("div");
-	item_elm.className = "admin-" + item_name;
 	item_elm.id = mk_cell_id(id, item_name);
 	elm.appendChild(item_elm);
+
+	if (item_name != "title") {
+		item_elm.classList.add("admin-line");
+	}
+	item_elm.classList.add("admin-" + item_name);
+
+	var value_elm = document.createElement("div");
+	value_elm.id = mk_cell_id(id, item_name + "_value");
+	item_elm.appendChild(value_elm);
+
+	value_elm.classList.add("admin-value");
+	value_elm.classList.add("admin-value-" + item_name);
 
 	return item_elm;
 }

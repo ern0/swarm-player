@@ -67,7 +67,7 @@ impl Client {
             "{} [{}]: master mode", 
             now_string(),
             self.id,
-            );
+        );
     }
 
     pub fn process_report_clock_skew(&mut self, packet: &Packet) {
@@ -81,7 +81,7 @@ impl Client {
             now_string(),
             self.id,
             value,
-            );
+        );
     }
 
     pub fn process_report_audio_lag(&mut self, packet: &Packet) {
@@ -95,7 +95,7 @@ impl Client {
             now_string(),
             self.id,
             value,
-            );
+        );
     }
 
     pub fn check_and_clear(&mut self) -> bool {
@@ -125,7 +125,8 @@ impl Client {
             None => packet.set_str(2, "-"),
         };
 
-        let channel_mask = 0x00;
+        // TODO: use real mask
+        let channel_mask = self.id as i64 & 0x0f;
         packet.set_num(3, channel_mask);
 
         println!(
@@ -136,7 +137,7 @@ impl Client {
             packet.get_str(1),
             packet.get_str(2),
             packet.get_str(3),
-            );
+        );
 
         return packet;
     }
