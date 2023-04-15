@@ -16,6 +16,7 @@ pub struct ClientManager {
     clients: SharedClientList,
     master_client: Arc<RwLock<Option<SharedClient>>>,
     master_client_id: Mutex<Option<u64>>,
+    is_master_client_disconnected: RwLock<bool>,
     debug: bool,
 }
 
@@ -34,10 +35,13 @@ impl ClientManager {
         let master_client_id_value: Option<u64> = None;
         let master_client_id = Mutex::new(master_client_id_value);
 
+        let is_master_client_disconnected = RwLock::new(false);
+
         return ClientManager {
             clients,
             master_client,
             master_client_id,
+            is_master_client_disconnected,
             debug: false,
         };
     }
@@ -232,6 +236,8 @@ impl ClientManager {
         let mut guarded_opt = self.master_client.write().unwrap();
         *guarded_opt = None;    
 
+        *self.is_master_client_disconnected.write().unwrap() = true;
+
     }
 
     fn report_client_life_event(&self, client_id: u64, creation: bool) {
@@ -353,6 +359,8 @@ impl ClientManager {
 
     fn wait_for_master_client(&self) {
 
+        *self.is_master_client_disconnected.write().unwrap() = false;
+
         loop {
 
             let lock: &RwLock<Option<SharedClient>> = &self.master_client;
@@ -361,6 +369,7 @@ impl ClientManager {
 
             sleep(Duration::from_secs(1));
         }
+
     }
 
     fn report_to_master_client(&self) {
@@ -371,12 +380,22 @@ impl ClientManager {
 
             // it contains at least one element: the master client
             let client_ids = self.get_client_ids_snapshot();
+            if *self.is_master_client_disconnected.read().unwrap() {
+                return;
+            }
 
-            for client_id in client_ids {  
+            for client_id in client_ids { 
+                
                 if self.report_to_master_single(client_id, first_round) {
                     return;
                 }
+
                 sleep(Duration::from_millis(200));                  
+
+                if *self.is_master_client_disconnected.read().unwrap() {
+                    return;
+                }
+
             }
 
             first_round = false;
