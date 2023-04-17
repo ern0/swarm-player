@@ -1,4 +1,4 @@
-#![allow(unused)]
+//#![allow(unused)]
 
 use std::time::SystemTime;
 use simple_websockets::{Message, Responder};
@@ -201,6 +201,7 @@ mod tests {
         let json = packet.render_json();
         assert!(json.contains(r#""data":[16,"-",3,"#));
      }
+     #[test]
      fn report_create_both_set() {
         let mut client = create_client(21);
         client.clock_skew = Some(12);
