@@ -1,5 +1,3 @@
-//#![allow(unused)]
-
 use std::collections::HashMap;
 use std::vec::Vec;
 use tinyjson::JsonValue;
@@ -306,15 +304,15 @@ mod tests {
     fn create_simple_str() {
         let packet = Packet::new_simple_str("TYP","VAL");
         let json = packet.render_json();
-        assert!(json.contains("\"type\":\"TYP\""));
-        assert!(json.contains("\"data\":[\"VAL\"]"));
+        assert!(json.contains(r#"type":"TYP"#));
+        assert!(json.contains(r#"data":["VAL"]"#));
     }
     #[test]
     fn create_simple_num() {
         let packet = Packet::new_simple_num("BEAST", 666);
         let json = packet.render_json();
-        assert!(json.contains("\"type\":\"BEAST\""));
-        assert!(json.contains("\"data\":[666]"));
+        assert!(json.contains(r#"type":"BEAST"#));
+        assert!(json.contains(r#"data":[666]"#));
     }
     #[test]
     fn create_mixed() {
@@ -322,7 +320,7 @@ mod tests {
         packet.set_str(1, "one");
         packet.set_num(2, 2);
         let json = packet.render_json();
-        assert!(json.contains("data\":[0,\"one\",2]"));
+        assert!(json.contains(r#"data":[0,"one",2]"#));
     }
     #[test]
     fn create_async_cmd() {
