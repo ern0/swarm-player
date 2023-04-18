@@ -65,7 +65,6 @@ function send(signature, args)
 	packet = { "type": signature, "data": args };
 	data = JSON.stringify(packet);
 	app.websocket.send(data);
-
 	schedule_heartbeat(HEARTBEAT_TIMING_S[1]);
 
 	return true;
