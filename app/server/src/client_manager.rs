@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use std::collections::HashMap;
+use std::time::Duration;
 use std::thread::{sleep, spawn};
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc;
@@ -29,10 +30,22 @@ impl ClientManager {
         let s0 = Arc::new(self);
         let s1 = s0.clone();
         let s2 = s0.clone();
-        
-        spawn(move || s1.run_event_hub());
-        spawn(move || s2.run_broadcast());
 
+        spawn(move || s1.run_event_hub());
+        spawn(move || s2.run_display_counter());
+
+    }
+
+    fn broadcast(&self, packet: &Packet) {
+
+        println!("send broadcast: {}", packet.get_str(0));
+
+        let text_immutable: String = packet.render_json();
+        let hash_map = self.clients.lock().unwrap();
+        for (_id, client) in hash_map.iter() {
+            let message = Message::Text(text_immutable.clone());
+            client.responder.send(message);
+        }
     }
 
     pub fn run_event_hub(&self) {
@@ -77,28 +90,18 @@ impl ClientManager {
 
     }
 
-    pub fn broadcast(&self, packet: &Packet) {
-        //sender.send(packet);
-    }
+    fn run_display_counter(&self) {
 
-    pub fn run_broadcast(&self) {
+        let mut counter = 0;
+        loop {        
+            let mut packet = Packet::new_simple_num("DISPLAY", counter);
+            packet.set_num(0, counter);
+            self.broadcast(&packet);
+            counter += 1;
 
-        // for packet in receiver.iter() {
-        //     self.perform_broadcast(&packet);
-        // }
-
-    }
-
-    fn perform_broadcast(&self, packet: &Packet) {
-
-        println!("send broadcast: {}", packet.get_str(0));
-
-        let text_immutable: String = packet.render_json();
-        let hash_map = self.clients.lock().unwrap();
-        for (_id, client) in hash_map.iter() {
-            let message = Message::Text(text_immutable.clone());
-            client.responder.send(message);
+            sleep(Duration::from_secs(1));
         }
-    }
+
+    }    
 
 }

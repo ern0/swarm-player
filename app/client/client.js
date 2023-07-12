@@ -188,7 +188,7 @@ function handle_button_abort_or_disconnect() {
 
 function handle_button_cmd() {
 	var color = this.id.split("_")[1];
-	send("COLOR", color);
+	send("COLOR", [color]);
 }
 
 function send(signature, args) {	
@@ -196,6 +196,11 @@ function send(signature, args) {
 	if (!app.websocket) return;
 	if (app.websocket.readyState != app.websocket.OPEN) return;
 	
+	if ((typeof args) != "object") {
+		console.error("INTERNAL: invalid send format");
+		return;
+	}
+
 	packet = { "type": signature, "data": args };
 	data = JSON.stringify(packet);
 	app.websocket.send(data);

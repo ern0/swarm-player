@@ -34,6 +34,7 @@ impl Client {
         
         self.seen = now();
         let packet = Packet::from(&text);
+        println!("[{}] message: {}", self.id, text);
 
         match packet.get_type().as_str() {
             "CLK_0" => self.process_request_clk0(&packet),
@@ -44,6 +45,7 @@ impl Client {
 
     fn send_now(&self, text: &str) {
         
+        println!("[{}] send: {}", self.id, text);
         let message = Message::Text(text.to_string());
         self.responder.send(message);
     }
@@ -64,5 +66,9 @@ impl Client {
     }
 
     fn process_request_color(&self, packet: &Packet) {
+
+        let color = packet.get_str(0);
+        println!("[{}] color: {}", self.id, color);
     }
+
 }
