@@ -293,25 +293,81 @@ individual etc.
 This is a short intermission about message types.
 There are the following types:
 
-- Client-server technical messages:
+- Client-server Technical Messages:
   the client sends a request, the server responds to it.
   There's one such message pair is implemented:
   the *Time Synchronization* reqeuest-reply.
   Taxonomically client socket connect and disconnect
   events belong to this message type.
-- Player content messages:
+- Player Content Messages:
   the Player sends a channel or broadcast message, 
   the server sends it to the addressed clients, 
   which execute it synchronized.
   There's one message implemented if this type: 
-  *Color Change*
+  *Color Change*.
   (the implementation does not contain addressing,
   the server broadcasts it to all clients).
-- Player control messages:
+- Player Control Messages:
   the Player sends a control request to the server,
   which executes it immediately.
   *Set Channel Number* is such message,
   not implemented yet.
+
+
+### The Note Off problem
+
+Sending messages to Clients looks straightforward:
+
+- the message is addressed to one or more Channels,
+- the Clients are assigned to one or more Channels,
+- so the message should be sent to these Clients.
+
+It's only true, if the messages are *independent*.
+
+The exception is the *Note On - Note Off* pair,
+it can cause the following issue:
+
+- given a Client, it's assigned to Channel 1,
+- a *Note On* message receives for Channel 1,
+- the Server sends it to the Client,
+- the Client starts playing the note on Channel 1
+- a new Client connects, or some disconnects,
+- therefore the Server re-organizes the 
+  Channel-Client assignements,
+  and as part of it, un-assigns Channel 1 
+  from the Client which is playing the note,
+- so when the *Note Off* arrives for Channel 1,
+  the Client, which is not assigned to it anymore,
+  doesn't receive the message, 
+  and never stops playing the note.
+
+Incomplete solutions:
+
+- Combine *Note On - Note Off* pair into a single message.
+  No server-side implementation required,
+  btu it only works for pre-recorded score.
+- Turn off all pending notes, when a channel is unassigned.
+  It's also can be implemented on client side.
+  May cause glitch in live performance.
+
+The proper solution:
+
+- track pending notes on server-side, for each client,
+- upon a *Note Off* message, instead of actual 
+  channel assignment, use this information for
+  selecting Clients to send the message to.
+
+The list of pending notes can be constant sized for
+each Client: number of channels (4, may vary)
+by number of possible pitches (128, MIDI limitation).
+
+Workaround:
+
+- *Note Off* messages should be sent to all Clients,
+- the Clients should track pending notes,
+- the Clients should ignore unnecessary messages.
+
+This workaround generates unnecessary network traffic.
 
 
 ### Server requirements

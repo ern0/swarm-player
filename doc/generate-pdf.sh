@@ -19,4 +19,9 @@ function gen {
 
 gen design
 #gen kikof
-open design.pdf
+
+if [ -z `which evince` ]; then
+    open design.pdf
+else
+    evince design.pdf
+fi
