@@ -21,7 +21,7 @@ pub fn main() {
 
     loop {
         cm2.broadcast();
-        sleep(Duration::from_millis(1000));
+        sleep(Duration::from_secs(1));
     }
 
 }
