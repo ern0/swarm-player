@@ -1,10 +1,20 @@
 # Swarm Player - design / project plan
 
-## Milestone 1
+
+## Milestone 1: Auto join and time sync
+
+
+### Summary
+
+When the user switches hotspot, 
+it connects-disconnects automatically.
+
+Non-planned feature: time sync.
+
 
 ### Requirements
 
-Implement auto-join procedure:
+Implement auto join procedure:
 
 - The administrator configures public entry page: sets main app URL and hotspot name
 - The user opens the public entry page in a browser
@@ -31,7 +41,7 @@ Hotspot switching should be emulated for development phase.
 ### Server
 
 Implement minimal functionality,
-just to support client auto-join feature:
+just to support client auto join feature:
 
 - written in Rust
 - clients can connect with websocket
@@ -41,7 +51,7 @@ just to support client auto-join feature:
 
 ### Client
 
-Implement auto-join:
+Implement auto join:
 
 - implement hotspot detection in public entry page
 - the switch between entry page and main app should be "invisible"
@@ -70,9 +80,11 @@ Test features:
 - the client's timestamp can be shifted
   to emulate clock skew.
 
-## Milestone 2
 
-### Requirements
+## Milestone 2: Synchronized broadcast
+
+
+### Summary
 
 Clients execute commands simultaneously, 
 synchronized with each other.
@@ -80,7 +92,8 @@ synchronized with each other.
 The pre-requisite is met: 
 time synchronization is already implemented.
 
-### Server
+
+### Server 
 
 - The server receives message from external sources
 - The server adds timestamp to the message:
@@ -91,6 +104,7 @@ time synchronization is already implemented.
 - The server broadcasts all messages to all clients,
   no filtering applied in this milestone yet
 
+
 ### Client
 
 - Receives message, adds it to a container
@@ -100,11 +114,37 @@ time synchronization is already implemented.
 - Performs some simple visible action, 
   e.g. sets background color
 
-## Milestone 3: The channel concept
+
+## Milestone 3: Development features
+
+Implement Development comfort functions.
+
+
+### Client
+
+- Automatic reload on connect
+- Minimal sound playing capability
+- Avoid screensaver
+
+
+### Server
+
+- Implement minimal sound command
+- Collect and provide some stats, fucusing on client lags
+
+
+### Logistics
+
+Get some devices.
+
+
+## Milestone 4: The channel concept
+
 
 The Player should request the server
 to split up clients to *Channels*, which
 are playing different things.
+
 
 ### All about Clients
 
@@ -125,6 +165,7 @@ We can make the following observations about the clients:
   their volume is set too low, even muted,
   they are at acoustically wrong place,
   they are outside of the performance room.
+
 
 ### The problem is: addressing
 
@@ -154,6 +195,7 @@ The solution is somewhere halfway,
 using limited number of *Channels*,
 which the clients can be assigned dynamically.
 
+
 ### Addressing modes
 
 Currently two addressing schemes are defined:
@@ -164,6 +206,7 @@ Currently two addressing schemes are defined:
 
 Other addressing modes are expected in the future, e.g. location-based,
 individual etc.
+
 
 ### Channel addressing overview
 
@@ -191,6 +234,7 @@ individual etc.
   without any Public Client,
   is able to run the whole show.
 
+
 ### Message types
 
 This is a short intermission about message types.
@@ -215,6 +259,7 @@ There are the following types:
   which executes it immediately.
   *Set Channel Number* is such message,
   not implemented yet.
+
 
 ### Server requirements
 
@@ -247,6 +292,7 @@ Channel addressing requirements for the server:
   and resolves the address (now: Channel),
   translating it to the list of Clients.
 
+
 ### Player requirements
 
 Minimal player functions should be implemented 
@@ -256,14 +302,18 @@ The Player should send
 - Set Channels command,
 - a prototype Channel command (e.g. Set Color).
 
+
 ---
 
+
 ## Notices
+
 
 ### Song
 
 - Sonyi.mod
 - Banana song
+
 
 ### Sound engine
 
