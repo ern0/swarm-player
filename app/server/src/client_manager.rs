@@ -1,4 +1,4 @@
-//#![allow(unused)]
+#![allow(unused)]
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -14,8 +14,8 @@ use crate::packet::Packet;
 
 pub struct ClientManager {
     client_list: SharedClientList,
-    reporting: Option<Arc<Reporting>>,
-    channel_manager: Option<Arc<ChannelManager>>,
+    reporting: Reporting,
+    channel_manager: ChannelManager,
     debug: bool,
 }
 
@@ -24,21 +24,14 @@ impl ClientManager {
     pub fn new(client_list: SharedClientList) -> Self {
 
         return ClientManager {
-            client_list,
-            reporting: None,
-            channel_manager: None,
+            client_list: client_list.clone(),
+            reporting: Reporting::new(client_list.clone()),
+            channel_manager: ChannelManager::new(client_list.clone()),
             debug: false,
         };
     }
 
     pub fn start(mut self) {
-
-        let naked_reporting = Reporting::new(self.client_list.clone());
-        self.reporting = Some(Arc::new(naked_reporting));
-
-        let naked_channel_manager = ChannelManager::new(self.client_list.clone());
-        self.channel_manager = Some(Arc::new(naked_channel_manager));
-
         spawn(move || self.run_event_hub());
     }
 
@@ -65,7 +58,7 @@ impl ClientManager {
         
     }
 
-    pub fn run_event_hub(&self) {
+    pub fn run_event_hub(&mut self) {
 
         let event_hub = simple_websockets::launch(8080)
             .expect("failed to listen on port 8080");
@@ -90,7 +83,7 @@ impl ClientManager {
         }
     }
 
-    fn on_connect(&self, client_id: ClientId, responder: Responder) {
+    fn on_connect(&mut self, client_id: ClientId, responder: Responder) {
 
         println!(
             "{} [{}]: connected", 
@@ -100,17 +93,13 @@ impl ClientManager {
 
         let client = self.create_client(client_id, responder);
         self.send_id_to_client(client_id, &client);
-
         self.add_to_client_list(client_id, client);
 
-        let naked_channel_manager = self.channel_manager.as_ref().unwrap();
-        naked_channel_manager.report_client_creation(client_id);
-
-        let naked_reporting = self.reporting.as_ref().unwrap();
-        naked_reporting.report_client_creation(client_id);
+        self.channel_manager.report_client_creation(client_id);
+        self.reporting.report_client_creation(client_id);
     }
 
-    fn on_disconnect(&self, client_id: ClientId) {
+    fn on_disconnect(&mut self, client_id: ClientId) {
 
         println!(
             "{} [{}]: disconnected", 
@@ -118,13 +107,10 @@ impl ClientManager {
             client_id,
             );
       
-        let naked_reporting = self.reporting.as_ref().unwrap();
-        naked_reporting.report_client_destruction(client_id);
+        self.reporting.report_client_destruction(client_id);
         self.remove_from_client_list(client_id);
-        naked_reporting.clear_master_on_match(client_id);
-
-        let naked_channel_manager = self.channel_manager.as_ref().unwrap();
-        naked_channel_manager.report_client_destruction(client_id);
+        self.reporting.clear_master_on_match(client_id);
+        self.channel_manager.report_client_destruction(client_id);
     }
 
     fn on_message(&self, client_id: ClientId, message: Message) {
@@ -209,9 +195,8 @@ impl ClientManager {
             },            
 
             "MASTER" => {
-                let naked_reporting = self.reporting.as_ref().unwrap();
-                naked_reporting.set_master_client(shared_client);
-                naked_reporting.set_master_client_id(client_id);
+                self.reporting.set_master_client(shared_client);
+                self.reporting.set_master_client_id(client_id);
 
                 let client = shared_client.read().unwrap();
                 client.process_report_master();
