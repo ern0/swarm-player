@@ -1,15 +1,20 @@
-URL = "ws://127.0.0.1:8080/";
+SERVER_URL = "ws://127.0.0.1:8080/";
 
 document.addEventListener("DOMContentLoaded", main);
 
 function main() {
 
 	init_app_props();
+	init_url_options();
 	clock_sync_reset();
 	init_bind_buttons();
 
 	app.intent = "offline";
 	page("welcome");
+
+	if (app.opt_autoconnect) {
+		handle_button_connect();
+	}
 
 }
 
@@ -21,11 +26,45 @@ function init_app_props() {
 
 }
 
+function init_url_options() {
+
+	var url = new URL(document.location.href);
+	init_url_option_skew(url);
+	init_url_option_autoconnect(url);
+
+}
+
+function init_url_option_skew(url) {
+
+	app.opt_skew = url.searchParams.get("skew");
+	if (app.opt_skew == null) {
+		app.opt_skew = 0;
+	} else {
+		console.warn("TEST: skew is set to", app.opt_skew);
+	}
+
+}
+
+function init_url_option_autoconnect(url) {
+
+	app.opt_autoconnect = url.searchParams.get("autoconnect");
+	if (app.opt_autoconnect == null) {
+		app.opt_autoconnect = false; 
+	}
+	if (!app.opt_autoconnect) {
+		app.opt_autoconnect = +app.opt_autoconnect;
+	}
+	if (app.opt_autoconnect) {
+		console.warn("TEST: autoconnect is active");
+	}
+
+}
+
 function init_bind_buttons() {
 
 	elm("connect").onclick = handle_button_connect;
-	elm("abort").onclick = handle_button_abort;
-	elm("disconnect").onclick = handle_button_disconnect;
+	elm("abort").onclick = handle_button_abort_or_disconnect;
+	elm("disconnect").onclick = handle_button_abort_or_disconnect;
 
 }
 
@@ -79,7 +118,7 @@ function hide(id) {
 
 function create_websocket() {
 
-	app.websocket = new WebSocket(URL);
+	app.websocket = new WebSocket(SERVER_URL);
 	
 	app.websocket.onopen = handle_socket_open;
 	app.websocket.onmessage = handle_socket_message;
@@ -125,17 +164,13 @@ function handle_socket_close(event) {
 }
 
 function handle_button_connect() {
+
 	create_websocket();
 	intent("online");
+
 }
 
-function handle_button_abort() {
-	discard_websocket();
-	intent("offline");
-	page("bye");
-}
-
-function handle_button_disconnect() {
+function handle_button_abort_or_disconnect() {
 
 	discard_websocket();
 	intent("offline");
@@ -176,10 +211,7 @@ function stop_heartbeat() {
 }
 
 function get_raw_clock() {
-
-	var forced_error = 500;
-	var now = Date.now() + forced_error;
-
+	var now = Date.now() + app.opt_skew;
 	return now;
 }
 
