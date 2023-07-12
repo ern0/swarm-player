@@ -2,10 +2,12 @@
 
 use std::collections::HashMap;
 use std::thread::sleep;
+use std::sync::Arc;
 use std::time::Duration;
 use simple_websockets::{Message, Responder};
 use tinyjson::JsonValue;
 use crate::utils::now;
+use crate::client_manager::ClientManager;
 use crate::packet::Packet;
 
 pub struct Client {
@@ -29,20 +31,23 @@ impl Client {
 
     pub fn process_incoming_message(self: &mut Client, text: String) {
         
-        self.touch();
+        self.seen = now();
         let packet = Packet::from(&text);
-        let message_type = packet.get_type();
 
-        if message_type == "CLK_0" {
-            self.process_request_clk0(packet);
+        match packet.get_type().as_str() {
+            "CLK_0" => self.process_request_clk0(&packet),
+            "COLOR" => self.process_request_color(&packet),
+            _ => {},
         }
     }
 
-    fn touch(&mut self) {
-        self.seen = now();
+    fn send_now(&self, text: &str) {
+        
+        let message = Message::Text(text.to_string());
+        self.responder.send(message);
     }
 
-    fn process_request_clk0(&self, packet: Packet) {
+    fn process_request_clk0(&self, packet: &Packet) {
         
         let skew = packet.get_num(0);
         println!("[{}] clock skew was: {}", self.id, skew);
@@ -57,9 +62,6 @@ impl Client {
         self.send_now(&json);
     }
 
-    fn send_now(&self, text: &str) {
-        
-        let message = Message::Text(text.to_string());
-        self.responder.send(message);
+    fn process_request_color(&self, packet: &Packet) {
     }
 }
