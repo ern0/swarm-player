@@ -269,7 +269,7 @@ function clock_sync_reschedule() {
 	app.clock_sync_round += 1;
 
 	var sleep_duration_ms = sleep_duration_s * 1000;
-	sleep_duration_ms += Math.random(2000);
+	sleep_duration_ms += Math.random() * 2000;
 
 	setTimeout(clock_sync_start, sleep_duration_ms);
 }
