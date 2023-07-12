@@ -21,7 +21,6 @@ function init_buttons()
 	elm("reload").onclick = handle_button_cmd;
 }
 
-
 function init_https_link() 
 {
 	var url = new URL(document.location.href);

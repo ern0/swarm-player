@@ -33,23 +33,7 @@ function handle_socket_open(event)
 function handle_socket_message(event)
 {
 	var packet = JSON.parse(event.data);
-
-	if (packet.stamp == 0) {
-		process_packet_now(packet);
-		return;
-	}
-
-	var now = get_clock();
-	var action = packet.stamp;
-	var delay = action - now;
-	feed_stat(delay);
-	if (delay < 1) delay = 1;
-
-	setTimeout(function() {
-		process_packet_now(packet);
-	}, delay);
-	process_packet_timed(packet, delay);
-
+	process_packet(packet);
 }
 
 function handle_socket_close(event)
