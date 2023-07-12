@@ -78,7 +78,9 @@ impl ClientManager {
         for (_id, shared_client) in hash_map.iter() {
             let message = Message::Text(text_immutable.clone());
             let client = shared_client.write().unwrap();
-            client.responder.send(message);
+            if let Some(responder) = &client.opt_responder {
+                responder.send(message);
+            }
         }
         
     }
@@ -175,7 +177,8 @@ impl ClientManager {
     fn create_client(&self, client_id: u64, responder: Responder) -> Client {
 
         let shared_clients = self.clients.clone();
-        let client = Client::new(shared_clients, client_id, responder, self.debug);
+        let opt_responder = Some(responder);
+        let client = Client::new(shared_clients, client_id, opt_responder, self.debug);
 
         return client;
     }
