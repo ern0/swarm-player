@@ -1,4 +1,4 @@
-SERVER_URL = "ws://192.168.1.3:8080/";
+WEBSOCKET_PORT = 8080
 
 document.addEventListener("DOMContentLoaded", main);
 
@@ -29,9 +29,19 @@ function init_app_props() {
 function init_url_options() {
 
 	var url = new URL(document.location.href);
+	init_url_connection(url);
 	init_url_option_skew(url);
 	init_url_option_autoconnect(url);
 
+}
+
+function init_url_connection(url) {
+
+	var protocol = url.protocol.replace("http", "ws");
+
+	app.server_url = protocol + "//";
+	app.server_url += url.hostname;
+	app.server_url += ":" + WEBSOCKET_PORT;
 }
 
 function init_url_option_skew(url) {
@@ -131,7 +141,7 @@ function hide(id) {
 
 function create_websocket() {
 
-	app.websocket = new WebSocket(SERVER_URL);
+	app.websocket = new WebSocket(app.server_url);
 	
 	app.websocket.onopen = handle_socket_open;
 	app.websocket.onmessage = handle_socket_message;
