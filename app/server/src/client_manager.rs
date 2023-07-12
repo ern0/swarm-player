@@ -58,7 +58,7 @@ impl ClientManager {
 
         if self.debug {
             println!(
-                "[mgr] {}: broadcast: {}", 
+                "{} [mgr]: broadcast: {}", 
                 now_string(),
                 text_immutable,
                 );
@@ -79,7 +79,7 @@ impl ClientManager {
             .expect("failed to listen on port 8080");
 
         println!(
-            "[mgr] {}: server is up",
+            "{} [mgr]: server is up",
             now_string(),
             );
 
@@ -101,9 +101,9 @@ impl ClientManager {
     fn on_connect(&self, client_id: u64, responder: Responder) {
 
         println!(
-            "[{}] {}: connected", 
-            client_id,
+            "{} [{}]: connected", 
             now_string(),
+            client_id,
             );
 
         let client = self.create_client(client_id, responder);
@@ -114,9 +114,9 @@ impl ClientManager {
     fn on_disconnect(&self, client_id: u64) {
 
         println!(
-            "[{}] {}: disconnected", 
-            client_id,
+            "{} [{}]: disconnected", 
             now_string(),
+            client_id,
             );
       
         self.remove_from_clients(client_id);
@@ -129,9 +129,9 @@ impl ClientManager {
 
             if self.debug {
                 println!(
-                    "[{}] {}: recv: {}", 
-                    client_id,
+                    "{} [{}]: recv: {}", 
                     now_string(),
+                    client_id,
                     text,
                     );
             }
@@ -199,8 +199,7 @@ impl ClientManager {
 
     fn set_master_client_id(&self, client_id: u64) {
 
-        let mut opt: &Option<u64> = &self.master_client_id.lock().unwrap();
-        opt = &Some(client_id);
+        *self.master_client_id.lock().unwrap() = Some(client_id);    
 
     }
 
@@ -280,16 +279,16 @@ impl ClientManager {
 
         println!(
             "[{}] {}{} {}",
-            client_id, 
             stamp_string, 
+            client_id, 
             delay_mark, 
             message,
             );       
         if let Err(e) = writeln!(
             file, 
             "[{}] {}{} {}", 
-            client_id, 
             stamp_string,
+            client_id, 
             delay_mark,
             message,
             ) {
@@ -300,7 +299,9 @@ impl ClientManager {
     fn run_reporting(&self) {
 
         loop {
+            eprintln!("---- WAIT FOR MASTER ----");
             self.wait_for_master_client();
+            eprintln!("---- REPORT TO MASTER ----");
             self.report_to_master_client();
         }
     }    
@@ -309,45 +310,66 @@ impl ClientManager {
 
         loop {
 
-            sleep(Duration::from_secs(1));
-
             let lock: &RwLock<Option<SharedClient>> = &self.master_client;
             let opt: &Option<SharedClient> = &lock.read().unwrap();
-            let shared_client = match opt {
-                Some(_) => return,
-                None => continue,
-            };
+            if !opt.is_none() { return; }
 
+            sleep(Duration::from_secs(1));
         }
     }
 
     fn report_to_master_client(&self) {
 
-        // TODO: report actual set or something, sleep some
-        let client_ids = self.get_client_ids_snapshot();
+        let mut first_round = true;
 
         loop {
 
-            let lock: &RwLock<Option<SharedClient>> = &self.master_client;
-            let opt: &Option<SharedClient> = &lock.read().unwrap();
-            let shared_master_client = match opt {
-                Some(shc) => shc,
-                None => return,
-            };
+            let client_ids = self.get_client_ids_snapshot();
+            
+            for client_id in client_ids {
 
-            for client_id in &client_ids {
+                //self.report_to_master_single(client_id);
+
+                let lock: &RwLock<Option<SharedClient>> = &self.master_client;
+                let opt: &Option<SharedClient> = &lock.read().unwrap();               
+                let Some(shared_master_client) = opt else {
+                    return;
+                };
+
+                let mcid_opt = *self.master_client_id.lock().unwrap();
+                let Some(master_id) = mcid_opt else { 
+                    return;
+                };
 
                 let hash_map = self.clients.read().unwrap();
-                if !hash_map.contains_key(&client_id) {
+                let Some(shared_client) = hash_map.get(&client_id) else {
                     continue;
+                };
+
+                let mut client = shared_client.write().unwrap();
+
+                let should_send_report = match first_round {
+                    true => true,
+                    false => client.check_and_clear(),
+                };
+                
+                if should_send_report {
+
+                    let packet = client.create_report();
+
+                    if client_id == master_id {
+                        client.send_packet(&packet);
+                    } else {
+                        let mut master_client = shared_master_client.write().unwrap();
+                        master_client.send_packet(&packet);
+                    }
+
                 }
 
-                let shared_client = hash_map.get(&client_id).unwrap();
-                let client = shared_client.read().unwrap();
-                let packet = client.create_report();
-                let master_client = shared_master_client.read().unwrap();
-                master_client.send_packet(&packet);
+                sleep(Duration::from_millis(200));                  
             }
+
+            let first_round = false;
         }
     }
 
