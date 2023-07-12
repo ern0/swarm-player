@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
 use crate::client::Client;
 
 pub const UNDEF: i64 = i64::MAX;

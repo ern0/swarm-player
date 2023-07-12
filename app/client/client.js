@@ -72,7 +72,7 @@ function init_bind_buttons() {
 	elm("cmd_green").onclick = handle_button_cmd;
 	elm("cmd_blue").onclick = handle_button_cmd;
 	elm("cmd_yellow").onclick = handle_button_cmd;
-	elm("cmd_white").onclick = handle_button_cmd;
+	elm("cmd_gray").onclick = handle_button_cmd;
 
 }
 
@@ -98,6 +98,7 @@ function page(req) {
 
 	if (req == "op") {
 		display("...");
+		set_color("white");
 	}
 
 	if (req == "bye") {
@@ -114,6 +115,10 @@ function intent(req) {
 
 function display(content) {
 	elm("kontent").innerHTML = content;
+}
+
+function set_color(color) {
+	elm("control").style.backgroundColor = color;
 }
 
 function show(id) {
@@ -152,8 +157,9 @@ function handle_socket_open(event) {
 function handle_socket_message(event) {
 	packet = JSON.parse(event.data);
 
-	if (packet.type == "DISPLAY") display(packet.data);
+	if (packet.type == "DISPLAY") display(packet.data[0]);
 	if (packet.type == "CLK_REF") clock_sync_eval(packet.data[0]);
+	if (packet.type == "COLOR") set_color(packet.data[0]);
 	
 	//...
 
