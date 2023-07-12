@@ -8,7 +8,6 @@ use crate::packet::Packet;
 pub struct Client {
     pub clients: SharedClientList,
     pub id: u64,
-    pub is_admin: bool,
     pub lag: i64,
     pub responder: Responder,
     pub debug: bool,
@@ -22,7 +21,6 @@ impl Client {
         return Client {
             clients: clients,
             id: id,
-            is_admin: false,
             lag: 0,
             responder: responder,
             debug: debug,
@@ -61,10 +59,8 @@ impl Client {
         self.send_packet(&packet);
     }
 
-    pub fn process_report_admin(&mut self) {
+    pub fn process_report_admin(&self) {
         
-        self.is_admin = true;
-
         println!(
             "[{}] {}: admin mode", 
             self.id,

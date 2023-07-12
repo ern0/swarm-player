@@ -14,7 +14,7 @@ use crate::packet::Packet;
 
 pub struct ClientManager {
     clients: SharedClientList,
-    ////master_client: SharedClient,
+    master_client: Arc<RwLock<Option<SharedClient>>>,
     debug: bool,
 }
 
@@ -22,13 +22,18 @@ impl ClientManager {
 
     pub fn new() -> Self {
 
-        let hash_map: HashMap<u64, SharedClient> = HashMap::new();
-        let lock = RwLock::new(hash_map);
-        let clients = Arc::new(lock);
+        let clients_hash_map: HashMap<u64, SharedClient> = HashMap::new();
+        let clients_lock = RwLock::new(clients_hash_map);
+        let clients = Arc::new(clients_lock);
+
+        let master_value = None;
+        let master_lock = RwLock::new(master_value);
+        let master_client = Arc::new(master_lock);
 
         return ClientManager {
             debug: false,
             clients,
+            master_client,
         };
     }
 
@@ -163,14 +168,20 @@ impl ClientManager {
         let shared_client = hash_map.get(&client_id).unwrap();
 
         match packet.get_type().as_str() {
+
             "CLK_0" => {
                 let client = shared_client.read().unwrap();
                 client.process_request_clk0();
             },            
+
             "ADMIN" => {
-                let mut client = shared_client.write().unwrap();
+                let mut value = self.master_client.write().unwrap();
+                *value = Some(shared_client.clone());
+
+                let client = shared_client.read().unwrap();
                 client.process_report_admin();
             },
+
             "AUDIO" => {
                 let mut client = shared_client.write().unwrap();
                 client.process_report_audio(&packet);
