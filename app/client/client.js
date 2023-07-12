@@ -236,7 +236,7 @@ function clock_sync_reset() {
 
 function clock_sync_start() {
 	app.clock_c0 = get_raw_clock();
-	send("CLK_0", [app.clock_c0]);
+	send("CLK_0", [app.clock_skew]);
 }
 
 function clock_sync_eval(clock_ref) {
@@ -276,7 +276,7 @@ function clock_sync_reschedule() {
 
 function clock_sync_debug(clock_ref, turnaround, distance, estimation, skew) {
 
-	var z = 1677710000000; 
+	var z = 0; 
 	var t0 = app.clock_c0 - z;
 	var tref = clock_ref - z;
 	var t1 = app.clock_c1 - z;
