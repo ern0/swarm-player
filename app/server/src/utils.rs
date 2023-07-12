@@ -25,7 +25,6 @@ pub fn now_millis() -> i64 {
 }
 
 pub fn systime_to_string(stamp: SystemTime) -> String {
-
     let datetime: DateTime<Local> = stamp.into();
     return datetime.format("%T.%3f").to_string();
 }
