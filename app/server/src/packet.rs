@@ -84,3 +84,21 @@ fn parse_data(root_object: &JsonObj, index: usize, undef: i64) -> (i64, String) 
 
     return (undef, undef.to_string(),);
 }
+
+#[cfg(test)]
+mod tests {
+
+    use crate::packet::Packet;   
+
+    #[test]
+    fn parse1() {
+
+        const JSON: &str = r#"{"type":"TYP","data":["VAL"]}"#;
+        let packet = Packet::from(&JSON.to_string());
+
+        assert_eq!(packet.get_type(), "TYP");
+        assert_eq!(packet.get_str(), "VAL");
+
+    }
+
+}
