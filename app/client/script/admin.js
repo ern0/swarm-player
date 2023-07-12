@@ -120,7 +120,7 @@ function admin_rethink()
 	var cell_side = app.admin_area_width;
 	var jump = (cell_side + 5) / 2;
 	var best_slack = -1;
-	var best_cell_side = -1;
+	app.admin_best_cell_side = -1;
 
 	while (true) {		
 
@@ -131,7 +131,7 @@ function admin_rethink()
 		var is_slack_best = (slack < best_slack) || (best_slack < 0);
 		if (is_slack_valid && is_slack_best) {
 			best_slack = slack;
-			best_cell_side = cell_side;
+			app.admin_best_cell_side = cell_side;
 		}
 
 		if (jump < 1) break;
@@ -146,26 +146,42 @@ function admin_rethink()
 
 	}
 
-	var cell_count_in_row = Math.floor(app.admin_area_width / best_cell_side);
-	var cells_width = best_cell_side * cell_count_in_row;
-	var horiz_slack = app.admin_area_width - cells_width;
-	var cell_extra_width = Math.floor(horiz_slack / cell_count_in_row);
+	app.admin_cell_height = app.admin_best_cell_side;
 
-	//TODO: orphans vs rows
+	var column_count = Math.floor(app.admin_area_width / app.admin_best_cell_side) ;
+	var cell_extra_width = admin_rethink_calc_extra_width(column_count);
 
-	app.admin_cell_width = best_cell_side + cell_extra_width;
-	app.admin_cell_height = best_cell_side;
+	var orphan_cell_count = app.admin_cell_count % column_count;
+	var empty_place_count = column_count - orphan_cell_count - 1;
+	var filled_row_count = Math.floor(app.admin_cell_count / column_count);
+	
+	var fill_empty_places = (empty_place_count >= filled_row_count);
+	if (orphan_cell_count == 0) fill_empty_places = false;
+	if (fill_empty_places) {
+		cell_extra_width = admin_rethink_calc_extra_width(column_count - 1);
+	}
+
+	app.admin_cell_width = app.admin_best_cell_side + cell_extra_width;
+
 }
 
 function admin_rethink_calc_slack(cell_side)
 {
-	var cell_count_in_row = Math.floor(app.admin_area_width / cell_side);
-	if (cell_count_in_row < 1) return -1;
+	var column_count = Math.floor(app.admin_area_width / cell_side);
+	if (column_count < 1) return -1;
 
-	var required_row_count = Math.ceil(app.admin_cell_count / cell_count_in_row);
+	var required_row_count = Math.ceil(app.admin_cell_count / column_count);
 	var slack = app.admin_area_height - (cell_side * required_row_count);
-
 	return slack;
+}
+
+function admin_rethink_calc_extra_width(column_count)
+{
+	var cells_width = app.admin_best_cell_side * column_count;
+	var horiz_slack = app.admin_area_width - cells_width;
+	var cell_extra_width = Math.floor(horiz_slack / column_count);
+
+	return cell_extra_width;
 }
 
 function mk_cell_dim()
