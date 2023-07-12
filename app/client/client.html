@@ -3,15 +3,12 @@
 		<style>
 			button { margin-bottom: 4px; }
 			#control { padding: 12px; }
-			#awake { width: 2px; height: 2px; }
+			#awake { width: 100%; height: 1px; }
 		</style>
 		<script src="client.js"></script>
 	</head>
 
 	<body>
-		<div id="nosleep">
-			fail			
-		</div>
 		<video id="awake"> </video>
 
 		<div id="welcome">
@@ -25,17 +22,17 @@
 			<button id="disconnect"> disconnect </button>
 
 			<div id="control">
-				<div style="background: white; padding: 4px;">
-					<button style="background: red; color: white;" id="cmd_red"> red </button>
-					<br />
-					<button style="background: green; color: white;" id="cmd_green"> green </button>
-					<br />
-					<button style="background: blue; color: white;" id="cmd_blue"> blue </button>
-					<br />
-					<button style="background: yellow; color: black;" id="cmd_yellow"> yellow </button>
-					<br />
-					<button style="background: gray; color: white;" id="cmd_gray"> gray </button>
-				</div>
+				<button style="background: red; color: white;" id="cmd_red"> red </button>
+				<br />
+				<button style="background: green; color: white;" id="cmd_green"> green </button>
+				<br />
+				<button style="background: blue; color: white;" id="cmd_blue"> blue </button>
+				<br />
+				<button style="background: yellow; color: black;" id="cmd_yellow"> yellow </button>
+				<br />
+				<button style="background: gray; color: white;" id="cmd_gray"> gray </button>
+				<br />
+				<button id="local"> local beep </button>
 			</div>
 
 		</div>
