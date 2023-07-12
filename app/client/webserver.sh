@@ -7,6 +7,7 @@ else
 	LINUX_SUDO=
 fi
 $LINUX_SUDO nginx -s quit 2> /dev/null
+$LINUX_SUDO pkill nginx 2> /dev/null
 
 set -e
 

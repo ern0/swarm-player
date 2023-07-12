@@ -7,7 +7,9 @@ MAGIC_AUDIO_LAG_FACTOR = 2.5;
 HEARTBEAT_TIMING_S = [0.3, 10];
 CLOCK_SYNC_TIMING_S = [0, 0.5, 2, 5, 30];
 
-document.addEventListener("DOMContentLoaded", main);
+document.addEventListener("DOMContentLoaded", function() {
+	main(false);
+});
 
 function main()
 {
@@ -23,6 +25,7 @@ function main()
 	init_heartbeat();
 	init_gui();
 	reset_stat();
+	init_admin();
 
 	startup();
 }
