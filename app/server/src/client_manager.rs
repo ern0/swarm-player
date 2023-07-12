@@ -1,4 +1,4 @@
-#![allow(unused)]
+//#![allow(unused)]
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -6,14 +6,14 @@ use std::thread::spawn;
 use std::sync::{Arc, RwLock};
 use simple_websockets::{Event, Message, Responder};
 use crate::utils::{now_string, millis_to_string};
-use crate::utils::SharedClientList;
+use crate::utils::{ClientId, SharedClientList};
 use crate::reporting::Reporting;
 use crate::channel_manager::ChannelManager;
 use crate::client::Client;
 use crate::packet::Packet;
 
 pub struct ClientManager {
-    clients: SharedClientList,
+    client_list: SharedClientList,
     reporting: Option<Arc<Reporting>>,
     channel_manager: Option<Arc<ChannelManager>>,
     debug: bool,
@@ -21,10 +21,10 @@ pub struct ClientManager {
 
 impl ClientManager {
 
-    pub fn new(clients: SharedClientList) -> Self {
+    pub fn new(client_list: SharedClientList) -> Self {
 
         return ClientManager {
-            clients,
+            client_list,
             reporting: None,
             channel_manager: None,
             debug: false,
@@ -33,10 +33,10 @@ impl ClientManager {
 
     pub fn start(mut self) {
 
-        let naked_reporting = Reporting::new(self.clients.clone());
+        let naked_reporting = Reporting::new(self.client_list.clone());
         self.reporting = Some(Arc::new(naked_reporting));
 
-        let naked_channel_manager = ChannelManager::new(self.clients.clone());
+        let naked_channel_manager = ChannelManager::new(self.client_list.clone());
         self.channel_manager = Some(Arc::new(naked_channel_manager));
 
         spawn(move || self.run_event_hub());
@@ -54,7 +54,7 @@ impl ClientManager {
             );
         }
 
-        let hash_map = self.clients.read().unwrap();
+        let hash_map = self.client_list.read().unwrap();
         for (_id, shared_client) in hash_map.iter() {
             let message = Message::Text(text_immutable.clone());
             let client = shared_client.write().unwrap();
@@ -90,7 +90,7 @@ impl ClientManager {
         }
     }
 
-    fn on_connect(&self, client_id: u64, responder: Responder) {
+    fn on_connect(&self, client_id: ClientId, responder: Responder) {
 
         println!(
             "{} [{}]: connected", 
@@ -100,12 +100,17 @@ impl ClientManager {
 
         let client = self.create_client(client_id, responder);
         self.send_id_to_client(client_id, &client);
+
+        self.add_to_client_list(client_id, client);
+
+        let naked_channel_manager = self.channel_manager.as_ref().unwrap();
+        naked_channel_manager.report_client_creation(client_id);
+
         let naked_reporting = self.reporting.as_ref().unwrap();
         naked_reporting.report_client_creation(client_id);
-        self.add_to_clients(client_id, client);
     }
 
-    fn on_disconnect(&self, client_id: u64) {
+    fn on_disconnect(&self, client_id: ClientId) {
 
         println!(
             "{} [{}]: disconnected", 
@@ -115,11 +120,14 @@ impl ClientManager {
       
         let naked_reporting = self.reporting.as_ref().unwrap();
         naked_reporting.report_client_destruction(client_id);
-        self.remove_from_clients(client_id);
+        self.remove_from_client_list(client_id);
         naked_reporting.clear_master_on_match(client_id);
+
+        let naked_channel_manager = self.channel_manager.as_ref().unwrap();
+        naked_channel_manager.report_client_destruction(client_id);
     }
 
-    fn on_message(&self, client_id: u64, message: Message) {
+    fn on_message(&self, client_id: ClientId, message: Message) {
 
         if let Message::Text(text) = message {
 
@@ -156,41 +164,41 @@ impl ClientManager {
 
     }
 
-    fn create_client(&self, client_id: u64, responder: Responder) -> Client {
+    fn create_client(&self, client_id: ClientId, responder: Responder) -> Client {
 
-        let shared_clients = self.clients.clone();
+        let shared_client_list = self.client_list.clone();
         let opt_responder = Some(responder);
-        let client = Client::new(shared_clients, client_id, opt_responder, self.debug);
+        let client = Client::new(shared_client_list, client_id, opt_responder, self.debug);
 
         return client;
     }
 
-    fn send_id_to_client(&self, client_id: u64, client: &Client) {
+    fn send_id_to_client(&self, client_id: ClientId, client: &Client) {
 
         let packet = Packet::new_simple_num("ID", client_id as i64);
         client.send_packet(&packet);
 
     }
 
-    fn add_to_clients(&self, client_id: u64, client: Client) {
+    fn add_to_client_list(&self, client_id: ClientId, client: Client) {
 
         let shared_client = Arc::new(RwLock::new(client));
-        let mut hash_map = self.clients.write().unwrap();
+        let mut hash_map = self.client_list.write().unwrap();
         hash_map.insert(client_id, shared_client);
 
     }
 
-    fn remove_from_clients(&self, client_id: u64) {
+    fn remove_from_client_list(&self, client_id: ClientId) {
 
-        let mut hash_map = self.clients.write().unwrap();
+        let mut hash_map = self.client_list.write().unwrap();
         hash_map.remove(&client_id);
 
     }
 
 
-    fn process_incoming_message(&self, client_id: u64, packet: &Packet) {
+    fn process_incoming_message(&self, client_id: ClientId, packet: &Packet) {
 
-        let hash_map = self.clients.read().unwrap();
+        let hash_map = self.client_list.read().unwrap();
         let shared_client = hash_map.get(&client_id).unwrap();
 
         match packet.get_type().as_str() {
@@ -234,7 +242,7 @@ impl ClientManager {
         self.broadcast(packet);
     }
 
-    fn process_request_log(&self, client_id: u64, packet: &Packet) {
+    fn process_request_log(&self, client_id: ClientId, packet: &Packet) {
 
         let mut file = OpenOptions::new()
             .create(true)
