@@ -345,19 +345,21 @@ function flash_color(color)
 
 function init_beep()
 {
-	app.frequency = 500 + (Math.random() * 500);
+	app.frequency = 200 + (Math.random() * 900);
+	app.audio_context = new AudioContext();
+
+	if (app.audio_context == null) {
+		setTimeout(init_beep, 100);
+	}
 }
 
 function beep()
 {
-	app.audio_context = new AudioContext();
-	if (app.audio_context == null) return;
 
 	app.oscillator = app.audio_context.createOscillator();
-	app.oscillator.type = "square";
+	app.oscillator.type = "sine";
 	app.oscillator.frequency.value = app.frequency;
 	app.oscillator.connect(app.audio_context.destination);
-
 	app.oscillator.start();
 
 	setTimeout(function() {
