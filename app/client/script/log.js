@@ -17,14 +17,18 @@ function log(message)
 	} else {
 		app.log_queue.push(message);
 	}
+
 	app.log_lock = false;
 }
 
 function flush_log()
 {
 	while (app.log_queue.length > 0) {
-		var message = app.log_queue.shift();
+
+		var message = app.log_queue[0];
 		var success = send("LOG", [message, 1]);
 		if (!success) break;
+		
+		app.log_queue.shift();
 	}
 }
