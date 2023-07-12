@@ -1,5 +1,6 @@
 mod utils;
 mod client_manager;
+mod channel_manager;
 mod client;
 mod packet;
 

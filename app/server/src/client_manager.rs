@@ -1,4 +1,4 @@
-//#![allow(unused)]
+#![allow(unused)]
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -9,6 +9,7 @@ use std::sync::{Arc, RwLock, Mutex};
 use simple_websockets::{Event, Message, Responder};
 use crate::utils::{now_string, millis_to_string};
 use crate::utils::{SharedClient, SharedClientList};
+use crate::channel_manager::ChannelManager;
 use crate::client::Client;
 use crate::packet::Packet;
 
@@ -42,6 +43,7 @@ impl ClientManager {
         let master_client_id = Mutex::new(master_client_id_value);
 
         let master_client_connection = RwLock::new(MasterClientConnectionHealth::StayedConnected);
+
 
         return ClientManager {
             clients,
