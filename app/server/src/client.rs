@@ -8,6 +8,8 @@ use crate::packet::Packet;
 pub struct Client {
     pub clients: ClientList,
     pub id: u64,
+    pub control_station: bool,
+    pub lag: i64,
     pub responder: Responder,
     pub debug: bool,
     pub seen: SystemTime,
@@ -21,6 +23,8 @@ impl Client {
         return Client {
             clients: clients,
             id: id,
+            control_station: false,
+            lag: 0,
             responder: responder,
             debug: debug,
             seen: SystemTime::UNIX_EPOCH,
@@ -34,6 +38,8 @@ impl Client {
 
         match packet.get_type().as_str() {
             "CLK_0" => self.process_request_clk0(),
+            "CTRL" => self.process_report_ctrl(),
+            "AUDIO" => self.process_report_audio(&packet),
             _ => {},
         }
 
@@ -68,6 +74,29 @@ impl Client {
         let clk_millis = systime_to_millis(clk_server);
         let packet: Packet = Packet::new_simple_num("CLK_REF", clk_millis);
         self.send_packet(&packet);
+    }
+
+    fn process_report_ctrl(&mut self) {
+        
+        self.control_station = true;
+
+        println!(
+            "[{}] {}: control station selected", 
+            self.id,
+            now_string(),
+            );
+    }
+
+    fn process_report_audio(&mut self, packet: &Packet) {
+
+        self.lag = packet.get_num(0);
+
+        println!(
+            "[{}] {}: audio lag: {} ms", 
+            self.id,
+            now_string(),
+            self.lag,
+            );
     }
 
 }

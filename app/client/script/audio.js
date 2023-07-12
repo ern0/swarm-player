@@ -7,9 +7,6 @@ function init_audio()
 		return;
 	} 
 
-	log("audio enabled");	
-	set_beep_freq();
-	
 	init_audio_profiling();
 	start_audio_profiling();
 }
@@ -92,7 +89,9 @@ function eval_audio_profiling_summary()
 	}
 	
 	display("au", app.audio_lag);
-	send("LAG", [app.audio_lag]);
+	report_audio_lag();
+
+	set_beep_freq();
 }
 
 function set_beep_freq() 

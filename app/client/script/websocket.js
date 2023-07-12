@@ -28,6 +28,8 @@ function handle_socket_open(event)
 	schedule_heartbeat(HEARTBEAT_TIMING_S[0]);
 	clock_sync_reset();
 	clock_sync_start();
+
+	reset_report();
 }
 
 function handle_socket_message(event)
@@ -49,13 +51,14 @@ function handle_socket_close(event)
 
 function send(signature, args)
 {
-	if (!app.websocket) return false;
-	if (app.websocket.readyState != app.websocket.OPEN) return false;
-
 	if ((typeof args) != "object") {
 		log("INTERNAL ERROR: invalid send format");
 		return false;
 	}
+
+	var fail = false;
+	if (!app.websocket) return false;
+	if (app.websocket.readyState != app.websocket.OPEN) return false;
 
 	packet = { "type": signature, "data": args };
 	data = JSON.stringify(packet);
