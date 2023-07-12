@@ -17,7 +17,7 @@ function init_buttons()
 	elm("color_green").onclick = handle_button_cmd;
 	elm("color_blue").onclick = handle_button_cmd;
 
-	elm("local").onclick = beep;
+	elm("local").onclick = function() { beep(0); };
 	elm("reload").onclick = handle_button_cmd;
 }
 

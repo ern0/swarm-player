@@ -2,9 +2,8 @@
 
 use std::collections::HashMap;
 use std::vec::Vec;
-use std::time::{SystemTime, UNIX_EPOCH};
 use tinyjson::JsonValue;
-use crate::utils::{UNDEF, STAMP_OFFSET_MS, systime_to_millis};
+use crate::utils::{UNDEF, STAMP_OFFSET_MS, now_millis};
 
 pub enum SyncMode { SyncData, AsyncCommand }
 
@@ -14,6 +13,7 @@ pub struct Packet {
     packet_type: String,
     data_as_num: Vec<i64>,
     data_as_str: Vec<String>,
+    stamp_millis: i64,
 }
 
 impl Packet {
@@ -24,6 +24,7 @@ impl Packet {
             packet_type: String::new(),
             data_as_num: Vec::new(),
             data_as_str: Vec::new(),
+            stamp_millis: now_millis(),
         };
     }
 
@@ -119,26 +120,23 @@ impl Packet {
         };
     }
 
-    pub fn render_json(&self, stamp: SystemTime) -> String {
+    pub fn render_json(&self) -> String {
 
-        let stamp_millis = systime_to_millis(stamp);
         let mut json: String = String::from("{");
         
         json.push_key("type");
         json.push_quoted(self.get_type());
         
-        if stamp != UNIX_EPOCH {
-            json.push_str(",");
-            json.push_key("stamp");
-            match self.get_sync_mode() {
-                SyncMode::SyncData => {
-                    let offseted = stamp_millis + STAMP_OFFSET_MS;
-                    json.push_str(&offseted.to_string());
-                },
-                SyncMode::AsyncCommand => {
-                    json.push_str(&0.to_string());
-                },
-            }
+        json.push_str(",");
+        json.push_key("stamp");
+        match self.get_sync_mode() {
+            SyncMode::SyncData => {
+                let offseted = self.stamp_millis + STAMP_OFFSET_MS;
+                json.push_str(&offseted.to_string());
+            },
+            SyncMode::AsyncCommand => {
+                json.push_str(&0.to_string());
+            },
         }
         
         json.push_str(",");
@@ -213,6 +211,7 @@ impl From<&String> for Packet {
             packet_type: packet_type,
             data_as_num: num_vec,
             data_as_str: str_vec,
+            stamp_millis: now_millis(),
         };
     }
 }
@@ -308,13 +307,13 @@ mod tests {
     #[test]
     fn create_simple_str() {
         let packet = Packet::new_simple_str("TYP","VAL");
-        let json = packet.render_json(UNIX_EPOCH);
+        let json = packet.render_json();
         assert_eq!(json, JSON_BASIC_STR);
     }
     #[test]
     fn create_simple_num() {
         let packet = Packet::new_simple_num("BEAST", 666);
-        let json = packet.render_json(UNIX_EPOCH);
+        let json = packet.render_json();
         assert_eq!(json, JSON_BASIC_NUM);
     }
     #[test]
@@ -322,7 +321,7 @@ mod tests {
         let mut packet = Packet::new_simple_num("T", 0);
         packet.set_str(1, "one");
         packet.set_num(2, 2);
-        let json = packet.render_json(UNIX_EPOCH);
+        let json = packet.render_json();
         assert_eq!(json, JSON_MIXED);
     }
     #[test]

@@ -5,11 +5,17 @@ function init_heartbeat()
 
 function send_heartbeat()
 {
+
+	var min_delay = app.stat_min_delay;
+	if (min_delay == -99999) min_delay = 0;
+	var max_delay = app.stat_max_delay;
+	if (max_delay == -99999) max_delay = 0;
+
 	send("HEARTBEAT", [
 		app.clock_skew,
 		app.stat_count,
-		app.stat_min_delay,
-		app.stat_max_delay
+		min_delay,
+		max_delay
 	]);
 
 	reset_stat();

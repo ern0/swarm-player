@@ -1,8 +1,8 @@
 //#![allow(unused)]
 
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::SystemTime;
 use simple_websockets::{Message, Responder};
-use crate::utils::{now_string, systime_to_string, systime_to_millis, ClientList};
+use crate::utils::{now_string, systime_to_millis, ClientList};
 use crate::packet::Packet;
 
 pub struct Client {
@@ -31,15 +31,15 @@ impl Client {
         self.seen = SystemTime::now();
 
         match packet.get_type().as_str() {
-            "CLK_0" => self.process_request_clk0(&packet),
+            "CLK_0" => self.process_request_clk0(),
             _ => {},
         }
 
     }
 
-    pub fn send_packet(&self, packet: &Packet, stamp: SystemTime) {
+    pub fn send_packet(&self, packet: &Packet) {
 
-        let text: String = packet.render_json(stamp);
+        let text: String = packet.render_json();
         self.send_text(&text);
 
     }
@@ -58,21 +58,12 @@ impl Client {
 
     }
 
-    fn process_request_clk0(&self, packet: &Packet) {
+    fn process_request_clk0(&self) {
         
-        let skew = packet.get_num(0);
         let clk_server = SystemTime::now();
-
-        println!(
-            "[{}] {}: clock sync, skew was: {}", 
-            self.id, 
-            systime_to_string(clk_server),
-            skew
-            );
-
         let clk_millis = systime_to_millis(clk_server);
         let packet: Packet = Packet::new_simple_num("CLK_REF", clk_millis);
-        self.send_packet(&packet, UNIX_EPOCH);
+        self.send_packet(&packet);
     }
 
 }
