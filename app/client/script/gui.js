@@ -37,7 +37,6 @@ function init_https_link()
 function display_defaults() 
 {
 	display("id", "...");
-	display("counter", "...");
 }
 
 function display(key, content)

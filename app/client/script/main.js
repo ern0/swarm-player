@@ -8,6 +8,9 @@ ADMIN_CELL_MARGIN = 2;
 ADMIN_CELL_BORDER = 2;
 ADMIN_CELL_AURA = (2 * ADMIN_CELL_MARGIN) + (2 * ADMIN_CELL_BORDER);
 
+ADMIN_SKEW_WARNING = 40;
+ADMIN_LAG_WARNING = 50;
+
 HEARTBEAT_TIMING_S = [0.3, 10];
 CLOCK_SYNC_TIMING_S = [0, 0.5, 2, 5, 30];
 
@@ -62,7 +65,7 @@ function calc_packet_delay(packet)
 	var delay = action - now;
 	if (delay < 1) delay = 1;
 
-	return delay
+	return delay;
 }
 
 function process_packet_later(packet, delay)
@@ -97,7 +100,11 @@ function process_packet_now(packet)
 	}
 
 	if (packet.type == "REPORT") {
-		console.log("report");
+		admin_report(packet);
+	}
+
+	if (packet.type == "COLOR") {
+		flash_color(packet.data[0]);
 	}
 
 }

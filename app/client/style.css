@@ -75,6 +75,20 @@ body, button {
 	color: #993300;
 }
 
+.admin-line-skew-warning {
+	color: #330000;
+	background: #ffcc66;
+}
+
+.admin-line-lag-warning {
+	color: #330000;
+	background: #ff9999;
+}
+
+.admin-line-undef {
+	color: #aabbdd;
+}
+
 #client { 
   width: 100%;
 }
