@@ -5,16 +5,14 @@ document.addEventListener("DOMContentLoaded", main);
 function main() {
 
 	app = {};
-	app.ws = null;
-	init_ui();
-	app.clock_skew = 0;
+	app.websocket = null;
 	app.heartbeat = null;
+	clock_sync_reset();
+	init_ui();
 
 	app.intent = "offline";
 	page("welcome");
 
-	schedule_heartbeat(500);
-	handle_button_connect(); /////////////////TODO
 }
 
 function init_ui() {
@@ -75,22 +73,27 @@ function hide(id) {
 
 function create_websocket() {
 
-	app.ws = new WebSocket(URL);
+	app.websocket = new WebSocket(URL);
 	
-	app.ws.onopen = handle_socket_open;
-	app.ws.onmessage = handle_socket_message;
-	app.ws.onclose = handle_socket_close;
+	app.websocket.onopen = handle_socket_open;
+	app.websocket.onmessage = handle_socket_message;
+	app.websocket.onclose = handle_socket_close;
 
 }
 
 function discard_websocket() {
-	if (app.ws != null) app.ws.close();
-	app.ws = null;
+	if (app.websocket != null) app.websocket.close();
+	app.websocket = null;
 }
 
 function handle_socket_open(event) {
+
 	page("op");
-	clock_sync_start();
+
+	schedule_heartbeat(500);
+	clock_sync_reset();
+	clock_sync_start();	
+
 }
 
 function handle_socket_message(event) {
@@ -104,6 +107,7 @@ function handle_socket_close(event) {
 
 	if (app.intent == "offline") return;
 
+	stop_heartbeat();
 	discard_websocket();
 	page("join");
 	setTimeout(create_websocket, 400);
@@ -129,12 +133,12 @@ function handle_button_disconnect() {
 
 function send(signature, args) {	
 
-	if (!app.ws) return;
-	if (app.ws.readyState != app.ws.OPEN) return;
+	if (!app.websocket) return;
+	if (app.websocket.readyState != app.websocket.OPEN) return;
 	
 	packet = { "type": signature, "data": args };
 	data = JSON.stringify(packet);
-	app.ws.send(data);
+	app.websocket.send(data);
 
 	schedule_heartbeat(1000);
 }
@@ -145,17 +149,23 @@ function send_heartbeat() {
 
 function schedule_heartbeat(timeout) {
 
-	if (app.heartbeat != null) {
-		clearTimeout(app.heartbeat);
-	}
-	
+	stop_heartbeat();	
 	app.heartbeat = setTimeout(send_heartbeat, timeout);
+
+}
+
+function stop_heartbeat() {
+
+	if (app.heartbeat == null) return;
+
+	clearTimeout(app.heartbeat);
+	app.heartbeat = null;
 
 }
 
 function get_raw_clock() {
 
-	var forced_error = -888;
+	var forced_error = 500;
 	var now = Date.now() + forced_error;
 	return now;
 }
@@ -172,6 +182,11 @@ function get_clock(parm = undefined) {
 	return corrected;
 }
 
+function clock_sync_reset() {
+	app.clock_skew = 0;
+	app.clock_sync_round = 0;
+}
+
 function clock_sync_start() {
 	app.clock_c0 = get_raw_clock();
 	send("CLK_0", [app.clock_c0]);
@@ -179,27 +194,52 @@ function clock_sync_start() {
 
 function clock_sync_eval(clock_ref) {
 	
+	clock_sync_calc_skew(clock_ref);
+	clock_sync_reschedule();
+}
+
+function clock_sync_calc_skew(clock_ref) {
+
 	app.clock_c1 = get_raw_clock();
 
 	var turnaround = app.clock_c1 - app.clock_c0;
 	var distance = turnaround / 2;
 	var estimation = app.clock_c0 + distance;
-	app.clock_skew = Math.round(estimation - clock_ref);
+	var skew = Math.round(estimation - clock_ref);
 
-	var repeat = 20000 + Math.random() * 5000;
-	setTimeout(clock_sync_start, repeat);
+	var change = Math.abs(app.clock_skew - skew);
+	if (change > 50) app.clock_skew = skew;
 
-	if (true) {
-		var z = 1677710000000; 
-		var t0 = app.clock_c0 - z;
-		var tref = clock_ref - z;
-		var t1 = app.clock_c1 - z;
-		var est = estimation - z;
-		console.log("--");
-		console.log("t0:", t0, "tref:", tref, "t1:", t1);
-		console.log("turnaround:", turnaround, "distance:", distance);	
-		console.log("estimation:", est, "skew:", app.clock_skew);
-	}
+	clock_sync_debug(clock_ref, turnaround, distance, estimation, skew, change);
 
 }
 
+function clock_sync_reschedule() {
+
+	var sleep_duration_s = 2;
+	if (app.clock_sync_round > 0) sleep_duration_s = 5;
+	if (app.clock_sync_round > 2) sleep_duration_s = 15;
+	if (app.clock_sync_round > 5) sleep_duration_s = 30;
+	app.clock_sync_round += 1;
+
+	var sleep_duration_ms = sleep_duration_s * 1000;
+	sleep_duration_ms += Math.random(2000);
+
+	setTimeout(clock_sync_start, sleep_duration_ms);
+
+}
+
+function clock_sync_debug(clock_ref, turnaround, distance, estimation, skew) {
+
+	var z = 1677710000000; 
+	var t0 = app.clock_c0 - z;
+	var tref = clock_ref - z;
+	var t1 = app.clock_c1 - z;
+	var est = estimation - z;
+
+	console.log("--");
+	console.log("t_0:", t0, "t_ref:", tref, "t_1:", t1);
+	console.log("turnaround:", turnaround, "distance:", distance);	
+	console.log("estimation:", est, "meas.skew:", skew, "eff.skew:", app.clock_skew);
+
+}
