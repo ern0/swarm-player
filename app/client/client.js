@@ -155,15 +155,30 @@ function handle_socket_open(event) {
 }
 
 function handle_socket_message(event) {
-	packet = JSON.parse(event.data);
 
-	if (packet.type == "DISPLAY") display(packet.data[0]);
-	if (packet.type == "CLK_REF") clock_sync_eval(packet.data[0]);
-	if (packet.type == "COLOR") set_color(packet.data[0]);
-	
-	//...
+	var packet = JSON.parse(event.data);
 
-};
+	console.log(event.data);  //TODO: check message skip issue
+
+	if (packet.type == "CLK_REF") {
+		clock_sync_eval(packet.data[0]);
+		return;
+	}
+
+	//TODO: naive implementation
+
+	var now = get_clock();
+	var action = packet.stamp;
+	var delay = action - now;
+	if (delay < 1) delay = 1;
+
+	setTimeout(function() {
+		if (packet.type == "DISPLAY") display(packet.data[0]);
+		if (packet.type == "COLOR") set_color(packet.data[0]);
+		//...
+	}, delay);
+
+}
 
 function handle_socket_close(event) {
 
@@ -211,7 +226,7 @@ function send(signature, args) {
 	data = JSON.stringify(packet);
 	app.websocket.send(data);
 
-	schedule_heartbeat(1000);
+	schedule_heartbeat(5000);  //TODO: change to prod value
 }
 
 function send_heartbeat() {
@@ -291,7 +306,7 @@ function clock_sync_reschedule() {
 	app.clock_sync_round += 1;
 
 	var sleep_duration_ms = sleep_duration_s * 1000;
-	sleep_duration_ms += Math.random() * 2000;
+	sleep_duration_ms += Math.random() * 5000;
 
 	setTimeout(clock_sync_start, sleep_duration_ms);
 }

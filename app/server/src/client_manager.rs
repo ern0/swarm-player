@@ -5,7 +5,7 @@ use std::time::Duration;
 use std::thread::{sleep, spawn};
 use std::sync::{Arc, RwLock};
 use simple_websockets::{Event, Message, Responder};
-use crate::utils::ClientList;
+use crate::utils::{now, ClientList};
 use crate::client::Client;
 use crate::packet::Packet;
 
@@ -34,7 +34,7 @@ impl ClientManager {
 
     fn broadcast(&self, packet: &Packet) {
 
-        let text_immutable: String = packet.render_json();
+        let text_immutable: String = packet.render_json(now());
         println!("<mgr> broadcast: {}", text_immutable);
 
         let hash_map = self.clients.read().unwrap();
@@ -79,7 +79,7 @@ impl ClientManager {
 
         println!("[{}] disconnected", client_id);
 
-        self.write().unwrap().remove(&client_id);
+        self.clients.write().unwrap().remove(&client_id);
     }
 
     fn on_message(&self, client_id: u64, message: Message) {
@@ -121,7 +121,7 @@ impl ClientManager {
             self.broadcast(&packet);
             counter += 1;
 
-            sleep(Duration::from_secs(1));
+            sleep(Duration::from_secs(100));
         }
 
     }    

@@ -49,13 +49,11 @@ impl Client {
         let skew = packet.get_num(0);
         println!("[{}] clock skew was: {}", self.id, skew);
 
-        sleep(Duration::from_millis(100));
         let clk_server = now();
         println!("[{}] clock sync at: {}", self.id, clk_server);
-        sleep(Duration::from_millis(100));
 
         let packet: Packet = Packet::new_simple_num("CLK_REF", clk_server);
-        let json = packet.render_json();        
+        let json = packet.render_json(clk_server);        
         self.send_now(&json);
     }
 
