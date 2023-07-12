@@ -15,6 +15,9 @@ export host=`ifconfig | grep 192 | cut -d' ' -f2`
 if [ -z $host ]; then
 	export host=`ifconfig | grep "inet 10" | cut -d't' -f2 | cut -d' ' -f2`
 fi
+if [ -z $host ]; then
+	export host=`ifconfig | grep "inet 172" | cut -d't' -f2 | cut -d' ' -f2`
+fi
 
 echo Host address: $host
 
