@@ -52,7 +52,7 @@ impl ClientManager {
 
     fn on_disconnect(&self, client_id: u64) {
 
-        println!("disconnected, id={}", client_id);
+        ////println!("disconnected, id={}", client_id);
 
         self.clients.lock().unwrap().remove(&client_id);
 
@@ -62,7 +62,7 @@ impl ClientManager {
 
         if let Message::Text(text) = message {
             
-            println!("received, client={} message={}", client_id, text);
+            ////println!("received, client={} message={}", client_id, text);
 
             let mut hash_map = self.clients.lock().unwrap();
             let client: &mut Client = hash_map.get_mut(&client_id).unwrap();
@@ -76,7 +76,7 @@ impl ClientManager {
         let hash_map = self.clients.lock().unwrap();
         let size = hash_map.len();
 
-        //println!("Sending broadcast: {}", size);
+        ////println!("Sending broadcast: {}", size);
 
         for (_id, client) in hash_map.iter() {
        		client.responder.send(Message::Text(size.to_string()));

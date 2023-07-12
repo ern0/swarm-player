@@ -10,6 +10,7 @@ pub struct Client {
 	pub id: u64,
 	pub responder: Responder,
     pub seen: i64,
+    pub epoch: i64,
 }
 
 impl Client {
@@ -18,7 +19,8 @@ impl Client {
         return Client {
             id: id,
             responder: responder,  
-            seen: 0,          
+            seen: 0,         
+            epoch: now(), 
         }
     }
 
@@ -67,9 +69,12 @@ impl Client {
 
         let _clk0 = self.parse_message_data_int(root_object, 0);
 
-        sleep(Duration::from_millis(500));
+        sleep(Duration::from_millis(1000));
         let clk_server = now();
-        sleep(Duration::from_millis(500));
+        println!("REPORT: {}", clk_server - 1677710000000);
+        sleep(Duration::from_millis(1000));
+
+        ////println!("REPORT: {}", (clk_server - self.epoch));
 
         self.send_response_int(String::from("CLK_REF"), clk_server);
     }
@@ -91,7 +96,7 @@ impl Client {
 
     fn send_response(&self, response: String) {
 
-        println!("send: [{}]", response);
+        ////println!("send: [{}]", response);
 
         let message = Message::Text(response);
         self.responder.send(message);
