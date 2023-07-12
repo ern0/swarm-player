@@ -44,13 +44,10 @@ function clock_sync_calc_skew(clock_ref)
 	var skew = Math.round(estimation - clock_ref);
 
 	var change = skew - app.clock_skew;
-
-	var change_sgn = (change < 0 ? "-" : "+");
-	var change_abs = Math.abs(change);
-	var change_report = "clock skew: " + app.clock_skew;
-	change_report += " " + change_sgn + " " + change_abs;
-	change_report += " = " + skew + " ";
-	if (change_abs > 30) {
+	var change_report = "clock skew: " + sgnfmt(app.clock_skew, "sign");
+	change_report += sgnfmt(change, "op");
+	change_report += " = " + sgnfmt(skew, "sign") + " ";
+	if (Math.abs(change) > 30) {
 		app.clock_skew = skew;
 		change_report += "(changed)"
 	} else {

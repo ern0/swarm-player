@@ -11,61 +11,88 @@ function init_audio()
 	set_beep_freq();
 	
 	init_audio_profiling();
-	run_audio_profiling();
+	start_audio_profiling();
 }
 
 function init_audio_profiling() 
 {
+	app.audio_profiling_start_offset = 0;
+	app.audio_profiling_stop_offset = 10;
+	app.audio_profiling_rounds = 20;
+	app.audio_profiling_instances = 8;
+
+	app.audio_profiling_count = [];	
+	app.audio_profiling_finished = 0;
 	app.audio_lag = 0;
-	app.audio_profiling_count = 0;
-	app.audio_profiling_start_offset = 5;
-	app.audio_profiling_stop_offset = 8;
-	app.audio_profiling_rounds = 50;
 }
 
-function run_audio_profiling(round)
+function start_audio_profiling()
 {
-	if (app.audio_profiling_count == 0) {
-		app.audio_profiling_epoch = Date.now();
+	app.audio_profiling_epoch = Date.now();
+	
+	for (var i = 0; i < app.audio_profiling_instances; i++) {
+		app.audio_profiling_count[i] = 0;
+		run_audio_profiling_instance(i);
 	}
+}
 
+function run_audio_profiling_instance(i)
+{
 	var gain = app.aucx.createGain();
 	gain.connect(app.aucx.destination);
-	gain.gain.value = 0.5;
+	gain.gain.value = 0;
 
 	var osc = app.aucx.createOscillator();
-	osc.type = "sine";
+	osc.type = "square";
 	osc.frequency.value = 440;
 	osc.connect(gain);
 
 	var now = app.aucx.currentTime;
-	var start = now;
-	start += app.audio_profiling_start_offset / 1000;
-	osc.start(start);
+	var offset = app.audio_profiling_start_offset;
+	if (offset == 0) {
+		osc.start();
+	} else {
+		var start = now;
+		start += app.audio_profiling_start_offset / 1000;
+		osc.start(start);
+	}
 	var stop = now;
 	stop += app.audio_profiling_stop_offset / 1000;
 	osc.stop(stop);
 
-	osc.onended = eval_audio_profiling;
+	osc.onended = function() {
+		var index = i;
+		eval_audio_profiling_instance(index);
+	}
 }
 
-function eval_audio_profiling() 
+function eval_audio_profiling_instance(i) 
 {
-	app.audio_profiling_count++;
-	if (app.audio_profiling_count < app.audio_profiling_rounds) {
-		run_audio_profiling();
+	app.audio_profiling_count[i]++;
+	if (app.audio_profiling_count[i] < app.audio_profiling_rounds) {
+		run_audio_profiling_instance(i);
 		return;
 	}
 
+	app.audio_profiling_finished += 1;
+	if (app.audio_profiling_finished == app.audio_profiling_instances) {
+		eval_audio_profiling_summary();
+	}
+}
+
+function eval_audio_profiling_summary() 
+{
 	var elapsed = Date.now() - app.audio_profiling_epoch;
 	var estimated = app.audio_profiling_stop_offset *	app.audio_profiling_rounds;
 	app.audio_lag = Math.round((elapsed - estimated) / app.audio_profiling_rounds);
-	if (app.audio_lag < 20) app.audio_lag = 0;
-
-	app.audio_lag = app.audio_lag * MAGIC_AUDIO_LAG_FACTOR;
+	
+	if (app.audio_lag < 0) app.audio_lag = 0;
+	if (app.audio_lag > 10) {
+		app.audio_lag = Math.round(app.audio_lag * MAGIC_AUDIO_LAG_FACTOR);
+	}
 	
 	display("au", app.audio_lag);
-	log("audio lag is " + app.audio_lag + " ms");
+	send("LAG", [app.audio_lag]);
 }
 
 function set_beep_freq() 

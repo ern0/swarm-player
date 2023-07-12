@@ -13,6 +13,7 @@ use crate::packet::Packet;
 
 pub struct ClientManager {
     clients: ClientList,
+    debug: bool,
 }
 
 impl ClientManager {
@@ -20,6 +21,7 @@ impl ClientManager {
     pub fn new() -> Self {
 
         return ClientManager {
+            debug: false,
             clients: Arc::new(RwLock::new(HashMap::new())),
         };
     }
@@ -38,11 +40,13 @@ impl ClientManager {
 
         let text_immutable: String = packet.render_json();
 
-        println!(
-            "[mgr] {}: broadcast: {}", 
-            now_string(),
-            text_immutable,
-            );
+        if self.debug {
+            println!(
+                "[mgr] {}: broadcast: {}", 
+                now_string(),
+                text_immutable,
+                );
+        }
 
         let hash_map = self.clients.read().unwrap();
         for (_id, client) in hash_map.iter() {
@@ -86,7 +90,7 @@ impl ClientManager {
             );
 
         let arc = self.clients.clone();
-        let client = Client::new(arc, client_id, responder);
+        let client = Client::new(arc, client_id, responder, self.debug);
 
         let packet = Packet::new_simple_num("ID", client_id as i64);
         client.send_packet(&packet);
@@ -110,12 +114,14 @@ impl ClientManager {
 
         if let Message::Text(text) = message {
 
-            println!(
-                "[{}] {}: recv: {}", 
-                client_id,
-                now_string(),
-                text,
-                );
+            if self.debug {
+                println!(
+                    "[{}] {}: recv: {}", 
+                    client_id,
+                    now_string(),
+                    text,
+                    );
+            }
 
             let packet = Packet::from(&text);
             match packet.get_type().as_str() {
