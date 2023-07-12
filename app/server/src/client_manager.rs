@@ -5,7 +5,7 @@ use std::io::prelude::*;
 use std::collections::HashMap;
 use std::time::Duration;
 use std::thread::{sleep, spawn};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, RwLock, Mutex};
 use simple_websockets::{Event, Message, Responder};
 use crate::utils::{now_string, millis_to_string};
 use crate::utils::{SharedClient, SharedClientList};
@@ -15,6 +15,8 @@ use crate::packet::Packet;
 pub struct ClientManager {
     clients: SharedClientList,
     master_client: Arc<RwLock<Option<SharedClient>>>,
+    master_client_id: Mutex<Option<u64>>,
+    master_client_reset: bool,
     debug: bool,
 }
 
@@ -26,14 +28,19 @@ impl ClientManager {
         let clients_lock = RwLock::new(clients_hash_map);
         let clients = Arc::new(clients_lock);
 
-        let master_value: Option<SharedClient> = None;
-        let master_lock = RwLock::new(master_value);
-        let master_client = Arc::new(master_lock);
+        let master_client_value: Option<SharedClient> = None;
+        let master_client_lock = RwLock::new(master_client_value);
+        let master_client = Arc::new(master_client_lock);
+
+        let master_client_id_value: Option<u64> = None;
+        let master_client_id = Mutex::new(master_client_id_value);
 
         return ClientManager {
-            debug: false,
             clients,
             master_client,
+            master_client_id,
+            master_client_reset: true,
+            debug: false,
         };
     }
 
@@ -101,16 +108,9 @@ impl ClientManager {
             now_string(),
             );
 
-        let shared_clients = self.clients.clone();
-        let client = Client::new(shared_clients, client_id, responder, self.debug);
-
-        let packet = Packet::new_simple_num("ID", client_id as i64);
-        client.send_packet(&packet);
-
-        let shared_client = Arc::new(RwLock::new((client)));
-        let mut hash_map = self.clients.write().unwrap();
-        hash_map.insert(client_id, shared_client);
-
+        let client = self.create_client(client_id, responder);
+        self.report_client_creation(client_id, &client);
+        self.add_to_clients(client_id, client);
     }
 
     fn on_disconnect(&self, client_id: u64) {
@@ -120,9 +120,9 @@ impl ClientManager {
             client_id,
             now_string(),
             );
-
-        let mut hash_map = self.clients.write().unwrap();
-        hash_map.remove(&client_id);
+      
+        self.remove_from_clients(client_id);
+        self.clear_master_id_on_match(client_id);
     }
 
     fn on_message(&self, client_id: u64, message: Message) {
@@ -162,6 +162,64 @@ impl ClientManager {
 
     }
 
+    fn create_client(&self, client_id: u64, responder: Responder) -> Client {
+
+        let shared_clients = self.clients.clone();
+        let client = Client::new(shared_clients, client_id, responder, self.debug);
+
+        return client;
+    }
+
+    fn report_client_creation(&self, client_id: u64, client: &Client) {
+
+        let packet = Packet::new_simple_num("ID", client_id as i64);
+        client.send_packet(&packet);
+
+    }
+
+    fn add_to_clients(&self, client_id: u64, client: Client) {
+
+        let shared_client = Arc::new(RwLock::new((client)));
+        let mut hash_map = self.clients.write().unwrap();
+        hash_map.insert(client_id, shared_client);
+
+    }
+
+    fn remove_from_clients(&self, client_id: u64) {
+
+        let mut hash_map = self.clients.write().unwrap();
+        hash_map.remove(&client_id);
+
+    }
+
+    fn set_master_client(&self, shared_client: &SharedClient) {
+
+        let mut value = self.master_client.write().unwrap();
+        *value = Some(shared_client.clone());
+
+    }
+
+    fn set_master_client_id(&self, client_id: u64) {
+
+        let mut opt: &Option<u64> = &self.master_client_id.lock().unwrap();
+        opt = &Some(client_id);
+
+    }
+
+    fn clear_master_id_on_match(&self, client_id: u64) {
+
+        let mut opt: &Option<u64> = &self.master_client_id.lock().unwrap();
+
+        let master_id = match opt {
+            Some(value) => value,
+            None => return,
+        };
+
+        if &client_id == master_id {
+            opt = &None;    
+        }
+    }
+
     fn process_incoming_message(&self, client_id: u64, packet: &Packet) {
 
         let hash_map = self.clients.read().unwrap();
@@ -175,17 +233,22 @@ impl ClientManager {
             },            
 
             "MASTER" => {
-                let mut value = self.master_client.write().unwrap();
-                *value = Some(shared_client.clone());
-
+                self.set_master_client(shared_client);
+                self.set_master_client_id(client_id);
                 let client = shared_client.read().unwrap();
                 client.process_report_master();
             },
 
-            "AUDIO" => {
+            "CLOCK_SKEW" => {
+                let mut client = shared_client.write().unwrap();
+                //TODO
+            },
+
+            "AUDIO_LAG" => {
                 let mut client = shared_client.write().unwrap();
                 client.process_report_audio(&packet);
             },
+
             _ => {},
         }
 
@@ -254,23 +317,11 @@ impl ClientManager {
             None => return,
         };
 
-        let mut packet = Packet::new();
-        packet.set_type("REPORT");
+        let master_client = shared_client.read().unwrap();
 
-        let id = 1000;
-        packet.set_num(0, id);
+        //TODO: report all clients, not only the master
+        master_client.report();
 
-        let clock_skew = 300;
-        packet.set_num(1, clock_skew);
-
-        let audio_lag = 3;
-        packet.set_num(2, audio_lag);
-
-        let channel_mask = 0x00;
-        packet.set_num(3, channel_mask);
-        
-        let client = shared_client.read().unwrap();
-        client.send_packet(&packet);
     }
 
 }
