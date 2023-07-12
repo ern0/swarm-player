@@ -70,7 +70,7 @@ impl ClientManager {
     }
 
     pub fn broadcast(&self, content: String) {
-
+        println!("broadcast");
     }
 
 }
