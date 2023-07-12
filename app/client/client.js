@@ -178,11 +178,6 @@ function handle_socket_message(event) {
 	var delay = action - now;
 	if (delay < 1) delay = 1;
 
-	console.log("--");
-	console.log("now:", action);
-	console.log("action:", action);
-	console.log("delay:", delay);
-
 	setTimeout(function() {
 		process_packet(packet);
 	}, delay);
@@ -224,8 +219,10 @@ function handle_button_abort_or_disconnect() {
 }
 
 function handle_button_cmd() {
+
 	var color = this.id.split("_")[1];
 	send("COLOR", [color]);
+
 }
 
 function send(signature, args) {	
@@ -310,7 +307,6 @@ function clock_sync_calc_skew(clock_ref) {
 	var change = Math.abs(app.clock_skew - skew);
 	if (change > 50) app.clock_skew = skew;
 
-	//clock_sync_debug(clock_ref, turnaround, distance, estimation, skew, change);
 }
 
 function clock_sync_reschedule() {
@@ -325,18 +321,4 @@ function clock_sync_reschedule() {
 	sleep_duration_ms += Math.random() * 5000;
 
 	setTimeout(clock_sync_start, sleep_duration_ms);
-}
-
-function clock_sync_debug(clock_ref, turnaround, distance, estimation, skew) {
-
-	var z = 0; 
-	var t0 = app.clock_c0 - z;
-	var tref = clock_ref - z;
-	var t1 = app.clock_c1 - z;
-	var est = estimation - z;
-
-	console.log("--");
-	console.log("t_0:", t0, "t_ref:", tref, "t_1:", t1);
-	console.log("turnaround:", turnaround, "distance:", distance);	
-	console.log("estimation:", est, "meas.skew:", skew, "eff.skew:", app.clock_skew);
 }
