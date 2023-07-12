@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use std::collections::HashMap;
 use simple_websockets::{ Event, EventHub, Responder, Message };
 
@@ -22,7 +20,6 @@ impl ClientManager {
 	pub fn run(mut self: ClientManager) {
 
         loop { 
-
             match self.event_hub.poll_event() {
 
                 Event::Connect(client_id, responder) => {
@@ -38,9 +35,7 @@ impl ClientManager {
                 },
 
             }
-
         }
-
     }
 
     fn on_connect(self: &mut ClientManager, responder: Responder, client_id: u64) {
@@ -58,6 +53,7 @@ impl ClientManager {
     fn on_disconnect(self: &mut ClientManager, client_id: u64) {
 
         println!("Client #{} disconnected.", client_id);
+
         self.clients.remove(&client_id);
 
     }

@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use simple_websockets::{ Message, Responder };
 
 pub struct Client {
