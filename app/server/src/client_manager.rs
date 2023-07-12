@@ -13,7 +13,6 @@ use crate::packet::Packet;
 
 pub struct ClientManager {
     clients: ClientList,
-    master_client: Client,
     debug: bool,
 }
 
