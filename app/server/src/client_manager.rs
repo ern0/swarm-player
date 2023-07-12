@@ -1,4 +1,4 @@
-//#![allow(unused)]
+#![allow(unused)]
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -8,27 +8,37 @@ use simple_websockets::{Event, Message, Responder};
 use crate::utils::{now_string, millis_to_string};
 use crate::utils::SharedClientList;
 use crate::reporting::Reporting;
+use crate::channel_manager::ChannelManager;
 use crate::client::Client;
 use crate::packet::Packet;
 
 pub struct ClientManager {
     clients: SharedClientList,
-    reporting: Arc<Reporting>,
+    reporting: Option<Arc<Reporting>>,
+    channel_manager: Option<Arc<ChannelManager>>,
     debug: bool,
 }
 
 impl ClientManager {
 
-    pub fn new(clients: SharedClientList, reporting: Arc<Reporting>) -> Self {
+    pub fn new(clients: SharedClientList) -> Self {
 
         return ClientManager {
             clients,
-            reporting,
+            reporting: None,
+            channel_manager: None,
             debug: false,
         };
     }
 
-    pub fn start(self) {
+    pub fn start(mut self) {
+
+        let naked_reporting = Reporting::new(self.clients.clone());
+        self.reporting = Some(Arc::new(naked_reporting));
+
+        let naked_channel_manager = ChannelManager::new(self.clients.clone());
+        self.channel_manager = Some(Arc::new(naked_channel_manager));
+
         spawn(move || self.run_event_hub());
     }
 
@@ -90,7 +100,8 @@ impl ClientManager {
 
         let client = self.create_client(client_id, responder);
         self.send_id_to_client(client_id, &client);
-        self.reporting.report_client_creation(client_id);
+        let naked_reporting = self.reporting.as_ref().unwrap();
+        naked_reporting.report_client_creation(client_id);
         self.add_to_clients(client_id, client);
     }
 
@@ -102,9 +113,10 @@ impl ClientManager {
             client_id,
             );
       
-        self.reporting.report_client_destruction(client_id);
+        let naked_reporting = self.reporting.as_ref().unwrap();
+        naked_reporting.report_client_destruction(client_id);
         self.remove_from_clients(client_id);
-        self.reporting.clear_master_on_match(client_id);
+        naked_reporting.clear_master_on_match(client_id);
     }
 
     fn on_message(&self, client_id: u64, message: Message) {
@@ -189,8 +201,9 @@ impl ClientManager {
             },            
 
             "MASTER" => {
-                self.reporting.set_master_client(shared_client);
-                self.reporting.set_master_client_id(client_id);
+                let naked_reporting = self.reporting.as_ref().unwrap();
+                naked_reporting.set_master_client(shared_client);
+                naked_reporting.set_master_client_id(client_id);
 
                 let client = shared_client.read().unwrap();
                 client.process_report_master();

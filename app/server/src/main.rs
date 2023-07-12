@@ -13,27 +13,21 @@ use utils::SharedClientList;
 
 use crate::utils::SharedClient;
 use crate::client_manager::ClientManager;
-use crate::channel_manager::ChannelManager;
-use crate::reporting::Reporting;
 
 pub fn main() {
 
     let client_list = create_client_list();
-    let reporting = Arc::new(Reporting::new(client_list.clone()));
-
-    ChannelManager::new(client_list.clone());
-    ClientManager::new(client_list.clone(), reporting.clone()).start();
-
-    reporting.start();
+    let client_manager = ClientManager::new(client_list);
+    client_manager.start();
 
     loop { sleep(Duration::from_secs(1)); }
 }
 
 fn create_client_list() -> SharedClientList {
 
-    let clients_hash_map: HashMap<u64, SharedClient> = HashMap::new();
-    let clients_lock = RwLock::new(clients_hash_map);
-    let clients = Arc::new(clients_lock);
+    let client_list_hash_map: HashMap<u64, SharedClient> = HashMap::new();
+    let client_list_lock = RwLock::new(client_list_hash_map);
+    let client_list = Arc::new(client_list_lock);
 
-    return clients;
+    return client_list;
 }
