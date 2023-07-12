@@ -1,13 +1,12 @@
-#![allow(unused)]
-
 use std::collections::HashMap;
+use std::sync::Mutex;
 use simple_websockets::{ Event, EventHub, Responder, Message };
 
 use crate::client::Client;
 
 pub struct ClientManager {
 	event_hub: EventHub,
-	clients: HashMap<u64, Client>,
+	clients: Mutex< HashMap<u64, Client> >,
 }
 
 impl ClientManager {
@@ -15,11 +14,11 @@ impl ClientManager {
 	pub fn new(event_hub: EventHub) -> Self {
 		return ClientManager {
 			event_hub: event_hub,
-			clients: HashMap::new(),
+			clients: Mutex::new(HashMap::new()),
 		}
 	}
 
-	pub fn run(&mut self) {
+	pub fn run(&self) {
 
         loop { 
             match self.event_hub.poll_event() {
@@ -40,7 +39,7 @@ impl ClientManager {
         }
     }
 
-    fn on_connect(&mut self, responder: Responder, client_id: u64) {
+    fn on_connect(&self, responder: Responder, client_id: u64) {
 
         println!("A client connected with id #{}", client_id);
 
@@ -48,15 +47,15 @@ impl ClientManager {
             id: client_id, 
             responder: responder,
         };
-        self.clients.insert(client.id, client);
+        self.clients.lock().unwrap().insert(client.id, client);
 
     }
 
-    fn on_disconnect(&mut self, client_id: u64) {
+    fn on_disconnect(&self, client_id: u64) {
 
         println!("Client #{} disconnected.", client_id);
 
-        self.clients.remove(&client_id);
+        self.clients.lock().unwrap().remove(&client_id);
 
     }
 
@@ -64,13 +63,22 @@ impl ClientManager {
 
         println!("Received a message from client #{}: {:?}", client_id, message);
 
-        let client = self.clients.get(&client_id).unwrap();
+        let hash_map = self.clients.lock().unwrap();
+        let client = hash_map.get(&client_id).unwrap();
         client.process_incoming_message(message);
 
     }
 
-    pub fn broadcast(&self, content: String) {
-        println!("broadcast");
+    pub fn broadcast(&self) {
+
+        let hash_map = self.clients.lock().unwrap();
+        let size = hash_map.len();
+
+        println!("Sending broadcast: {}", size);
+
+        for (_id, client) in hash_map.iter() {
+       		client.responder.send(Message::Text(size.to_string()));
+        }
     }
 
 }
