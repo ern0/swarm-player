@@ -44,7 +44,7 @@ impl Client {
 
     fn process_request_clk0(&self, packet: Packet) {
         
-        let _clk0 = packet.get_num();
+        let _clk0 = packet.get_num(0);
 
         sleep(Duration::from_millis(100));
         let clk_server = now();
