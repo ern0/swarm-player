@@ -31,7 +31,7 @@ function set_video_data(elm, fmt, data)
 
 function init_awake_video()
 {
-	vid = elm("awake");
+	vid = $("awake");
 	vid.setAttribute("loop", "");
 	vid.setAttribute("muted", true);
 	vid.muted = true;

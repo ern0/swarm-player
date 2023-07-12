@@ -76,6 +76,7 @@ function process_packet_now(packet)
 {
 	if (packet.type == "ID") {
 		app.client_id = +packet.data[0];
+		admin_add_self();
 		display("id", app.client_id);
 	}
 

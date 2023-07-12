@@ -28,13 +28,25 @@ body, button {
   clear: both;
 }
 
+
 #admin { 
 	display: none;
+	text-align: left;
 	float: right;
   width: 70%;
-	background: yellow;
-
+	height: 100%;
+	background: #ffffaa;
 }
+
+.cell {
+	display: inline-block;
+	border: 2px solid #000044;
+	margin: 2px;
+	background: #eeeeff;
+	color: #003399;
+	text-align: center;
+}
+
 #client { 
   width: 100%;
 }
