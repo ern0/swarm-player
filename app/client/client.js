@@ -95,8 +95,8 @@ function handle_socket_open(event) {
 function handle_socket_message(event) {
 	packet = JSON.parse(event.data);
 
-	if (packet.type == "cmd.disp") display(packet.data);
-	if (packet.type == "ans.clk") clock_sync_eval(packet.data);
+	if (packet.type == "DISP") display(packet.data);
+	if (packet.type == "CLK1") clock_sync_eval(packet.data);
 };
 
 function handle_socket_close(event) {
@@ -138,7 +138,7 @@ function send(signature, args) {
 }
 
 function heartbeat() {
-	send("rep.clk", [get_clock(), app.clock_skew]);
+	send("heartbeat", [get_clock(), app.clock_skew]);
 	setTimeout(heartbeat, 2500);
 }
 
@@ -148,7 +148,7 @@ function get_clock() {
 
 function clock_sync_start() {
 	app.clock_c0 = Date.now();
-	send("req.clk", [app.clock_c0]);
+	send("CLK0", [app.clock_c0]);
 }
 
 function clock_sync_eval(clock_ref) {

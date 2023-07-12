@@ -1,5 +1,7 @@
+#![allow(unused)]
+
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{ Arc, Mutex };
 use simple_websockets::{ Event, EventHub, Responder, Message };
 
 use crate::client::Client;
@@ -43,10 +45,7 @@ impl ClientManager {
 
         println!("A client connected with id #{}", client_id);
 
-        let client = Client { 
-            id: client_id, 
-            responder: responder,
-        };
+        let client = Client::new(client_id, responder);
         self.clients.lock().unwrap().insert(client.id, client);
 
     }
