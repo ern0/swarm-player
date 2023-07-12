@@ -19,7 +19,6 @@ function init_admin_ui()
 		elm.style.fontSize = "3vmin";
 	});
 
-	app.admin_add_timeout = null;
 }
 
 function init_admin_resize_handler()
@@ -80,12 +79,8 @@ function mk_cell_id(id, token)
 
 function admin_add_self(packet) 
 {
-	app.client_id = +packet.data[0];
-	display("id", app.client_id);
-
-	if (app.is_admin) {
-		admin_add(app.client_id);
-	}
+	if (!app.is_admin) return;
+	admin_add(app.client_id);
 }
 
 function admin_elm_self()
@@ -389,10 +384,24 @@ function admin_remove(id)
 	}, 1300);
 }
 
+function admin_connect(packet)
+{
+	if (!app.is_admin) return;
+
+	var id = packet.data[0];
+	if ((id in app.admin_cells)) return;
+
+	admin_add(id);
+}
+
 function admin_report(packet)
 {
+	if (!app.is_admin) return;
+
 	var id = packet.data[0];
-	if (!(id in app.admin_cells)) return;
+	if (!(id in app.admin_cells)) {
+		admin_add(id);
+	}
 
 	app.admin_cells[id]["skew"] = packet.data[1];
 	app.admin_cells[id]["lag"] = packet.data[2];
@@ -401,22 +410,10 @@ function admin_report(packet)
 	admin_repaint_cell(id);
 }
 
-function admin_connect(packet)
-{
-	var id = packet.data[0];
-	if ((id in app.admin_cells)) return;
-
-	if (app.admin_add_timeout != null) {
-		app.admin_add_timeout = null;
-	}
-
-	app.admin_add_timeout = setTimeout(function() {
-		admin_add(id);
-	}, 100);
-}
-
 function admin_disconnect(packet)
 {
+	if (!app.is_admin) return;
+
 	var id = packet.data[0];
 	if (!(id in app.admin_cells)) return;
 

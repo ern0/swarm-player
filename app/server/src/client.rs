@@ -41,9 +41,9 @@ impl Client {
 
         if self.debug {
             println!(
-                "[{}] {}: send: {}", 
-                self.id, 
+                "[mgr] {}: send({}): {}", 
                 now_string(),
+                self.id, 
                 text,
                 );
         }
@@ -108,7 +108,7 @@ impl Client {
         }
     }
 
-    pub fn create_report(&self) -> Packet {
+    pub fn create_report(&self, master_id: u64) -> Packet {
 
         let mut packet = Packet::new();
         packet.set_type("REPORT");
@@ -129,14 +129,14 @@ impl Client {
         packet.set_num(3, channel_mask);
 
         println!(
-            "{} [{}]: creating report: skew={} lag={} mask={}", 
+            "{} [mgr]: report({}): id={} skew={} lag={} mask={}", 
             now_string(),
+            master_id,
             self.id,
             packet.get_str(1),
             packet.get_str(2),
             packet.get_str(3),
             );
-
 
         return packet;
     }
