@@ -11,12 +11,12 @@ function main()
 {
 	app = {};
 
-	clock_sync_reset();
 	init_log();
+	clock_sync_reset();
 	init_awake();
-	init_options();
 	init_audio();
 	init_websocket();
+	init_options();
 	init_heartbeat();
 	init_gui();
 	reset_stat();
@@ -57,6 +57,7 @@ function process_packet(packet)
 
 	if (packet.type == "RELOAD") {
 		document.location.reload();
+		return;
 	}
 
 	if (packet.type == "DISPLAY") {

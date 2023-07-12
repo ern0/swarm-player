@@ -3,7 +3,7 @@
 #alias p='clear; cargo build 2> /tmp/err.txt ; less /tmp/err.txt'
 alias p='clear; cargo build'
 
-alias s='clear; target/debug/swarm-player-server'
+alias s='clear; curl -Is "http://localhost:8000/" | grep Started; target/debug/swarm-player-server'
 
 #alias t='clear; cargo test -- --nocapture'
 alias t='clear; cargo test'

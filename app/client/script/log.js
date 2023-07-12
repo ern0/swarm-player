@@ -1,7 +1,11 @@
 function init_log() 
 {
+	app.opt_skew = CLOCK_SKEW;
+	app.clock_skew = 0;
 	app.log_lock = false;
 	app.log_queue = [];
+
+	log("client start");
 }
 
 function log(message) 

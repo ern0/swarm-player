@@ -243,8 +243,8 @@ pre > code {
 }
 h1 { font-size: 44px; font-weight: normal; }
 h2 { font-size: 32px; font-weight: normal; }
-h3 { font-size: 28px; font-weight: normal; font-style: italic; }
-h4 { font-size: 16px; font-weight: normal; font-style: italic; }
+h3 { font-size: 28px; font-weight: normal; }
+h4 { font-size: 16px; font-weight: normal; }
 
 h1 {
 	break-after: avoid;
@@ -259,14 +259,16 @@ h2 {
 	margin-top: 0.6em;
 	margin-bottom: 0.6em;
 	line-height: 1.2;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
+	background: #eeeeee;
+	padding: 0.3em 0 0.3em 0.3em;
 }
 
 h3 {
 	break-after: avoid;
 	page-break-after: avoid;
 	margin-top: 0.6em;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
 }
 
 h1, h2, h3, h4 {
