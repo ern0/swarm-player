@@ -96,7 +96,7 @@ function handle_socket_message(event) {
 	packet = JSON.parse(event.data);
 
 	if (packet.type == "DISP") display(packet.data);
-	if (packet.type == "CLK1") clock_sync_eval(packet.data);
+	if (packet.type == "CLKR") clock_sync_eval(packet.data);
 };
 
 function handle_socket_close(event) {
