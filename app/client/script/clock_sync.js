@@ -48,7 +48,9 @@ function clock_sync_calc_skew(clock_ref)
 	change_report += sgnfmt(change, "op");
 	change_report += " = " + sgnfmt(skew, "sign") + " ";
 
-	if (Math.abs(change) > 30) {
+	var first_round = ( app.clock_sync_round == 0 );
+	var significant_change = ( Math.abs(change) > 30 );
+	if (first_round || significant_change) {
 		app.clock_skew = skew;
 		report_clock_skew();
 	}

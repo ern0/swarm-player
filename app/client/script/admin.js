@@ -59,12 +59,6 @@ function admin_socket_open()
 	for (var cell in app.admin_cells) {
 		admin_remove(cell);
 	}
-
-	// TODO: this is only temporary
-	if (false) for (var i = 1000; i < 1080; i++) {
-		app.admin_cells[i] = { "x": 0, "y": 0, "skew": "-", "lag": "-", "channels": 0 };
-	}
-
 }
 
 function admin_socket_close()

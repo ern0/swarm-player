@@ -1,6 +1,6 @@
 WEBSOCKET_PORT = 8080;
 AUTOCONNECT = 1;
-CLOCK_SKEW = 100;
+CLOCK_SKEW = 0;
 
 MAGIC_AUDIO_LAG_FACTOR = 2.5;
 
@@ -81,7 +81,7 @@ function process_packet_later(packet, delay)
 }
 
 function process_packet_now(packet)
-{
+{	
 	if (packet.type == "ID") {
 		app.client_id = +packet.data[0];
 		display("id", app.client_id);
