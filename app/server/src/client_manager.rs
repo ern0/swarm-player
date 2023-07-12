@@ -1,3 +1,5 @@
+#[allow(unused)]
+
 use std::collections::HashMap;
 use simple_websockets::{ Event, EventHub, Responder, Message };
 
@@ -17,7 +19,7 @@ impl ClientManager {
 		}
 	}
 
-	pub fn run(mut self: ClientManager) {
+	pub fn run(&mut self) {
 
         loop { 
             match self.event_hub.poll_event() {
@@ -38,7 +40,7 @@ impl ClientManager {
         }
     }
 
-    fn on_connect(self: &mut ClientManager, responder: Responder, client_id: u64) {
+    fn on_connect(&mut self, responder: Responder, client_id: u64) {
 
         println!("A client connected with id #{}", client_id);
 
@@ -50,7 +52,7 @@ impl ClientManager {
 
     }
 
-    fn on_disconnect(self: &mut ClientManager, client_id: u64) {
+    fn on_disconnect(&mut self, client_id: u64) {
 
         println!("Client #{} disconnected.", client_id);
 
@@ -58,12 +60,16 @@ impl ClientManager {
 
     }
 
-    fn on_message(self: &ClientManager, client_id: u64, message: Message) {
+    fn on_message(&self, client_id: u64, message: Message) {
 
         println!("Received a message from client #{}: {:?}", client_id, message);
 
         let client = self.clients.get(&client_id).unwrap();
         client.process_incoming_message(message);
+
+    }
+
+    pub fn broadcast(&self, content: String) {
 
     }
 

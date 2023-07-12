@@ -47,3 +47,7 @@ Implement auto-join:
 - the switch between entry page and main app should be "invisible"
 - main webapp should have only minimal functionality
 - implement hotspot switch detection in main webapp
+
+
+## Milestone 2
+
