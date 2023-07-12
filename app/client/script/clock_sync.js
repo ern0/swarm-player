@@ -47,15 +47,11 @@ function clock_sync_calc_skew(clock_ref)
 	var change_report = "clock skew: " + sgnfmt(app.clock_skew, "sign");
 	change_report += sgnfmt(change, "op");
 	change_report += " = " + sgnfmt(skew, "sign") + " ";
+
 	if (Math.abs(change) > 30) {
 		app.clock_skew = skew;
 		report_clock_skew();
-		change_report += "(changed)"
-	} else {
-		change_report += "(kept)"
 	}
-
-	log(change_report);
 }
 
 function clock_sync_reschedule()
