@@ -118,19 +118,26 @@ time synchronization is already implemented.
 ## Milestone 3: Development features
 
 Implement Development comfort functions.
+Use `nginx` for HTTPS and WSS support.
+
+
+### `nginx`
+
+- Static webserver on port 8000
+- Make HTTPS proxy to static webserver (port 8000)
+- Make WSS proxy to the server (port 8080)
 
 
 ### Client
 
 - Minimal sound playing capability
-- Avoid screensaver
-- Automatic reload on update
+- Avoid screensaver (browser API and video)
+- Auto update: reload on request
 - Logging to server
 
 
 ### Server
 
-- Implement minimal sound command
 - Implement logger
 - Collect and provide some stats, fucusing on client lags
 
