@@ -1,4 +1,4 @@
-//#![allow(unused)]
+#![allow(unused)]
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -12,11 +12,17 @@ use crate::utils::{SharedClient, SharedClientList};
 use crate::client::Client;
 use crate::packet::Packet;
 
+#[derive(PartialEq)]
+enum MasterClientConnectionHealth { 
+    StayedConnected,
+    HasBeenDisconnected,
+}
+
 pub struct ClientManager {
     clients: SharedClientList,
     master_client: Arc<RwLock<Option<SharedClient>>>,
     master_client_id: Mutex<Option<u64>>,
-    is_master_client_disconnected: RwLock<bool>,
+    master_client_connection: RwLock<MasterClientConnectionHealth>,
     debug: bool,
 }
 
@@ -35,13 +41,13 @@ impl ClientManager {
         let master_client_id_value: Option<u64> = None;
         let master_client_id = Mutex::new(master_client_id_value);
 
-        let is_master_client_disconnected = RwLock::new(false);
+        let master_client_connection = RwLock::new(MasterClientConnectionHealth::StayedConnected);
 
         return ClientManager {
             clients,
             master_client,
             master_client_id,
-            is_master_client_disconnected,
+            master_client_connection,
             debug: false,
         };
     }
@@ -227,16 +233,15 @@ impl ClientManager {
             None => return,
         };
 
-        if master_id != client_id {
-            return;
-        }
+        if master_id != client_id { return; }
 
         *guarded_id_opt = None;
+        drop(guarded_id_opt);
 
-        let mut guarded_opt = self.master_client.write().unwrap();
-        *guarded_opt = None;    
+        *self.master_client.write().unwrap() = None;    
 
-        *self.is_master_client_disconnected.write().unwrap() = true;
+        *self.master_client_connection.write().unwrap() =
+            MasterClientConnectionHealth::HasBeenDisconnected;
 
     }
 
@@ -359,7 +364,8 @@ impl ClientManager {
 
     fn wait_for_master_client(&self) {
 
-        *self.is_master_client_disconnected.write().unwrap() = false;
+        *self.master_client_connection.write().unwrap() =
+            MasterClientConnectionHealth::StayedConnected;
 
         loop {
 
@@ -380,7 +386,8 @@ impl ClientManager {
 
             // it contains at least one element: the master client
             let client_ids = self.get_client_ids_snapshot();
-            if *self.is_master_client_disconnected.read().unwrap() {
+            if *self.master_client_connection.read().unwrap()
+                == MasterClientConnectionHealth::HasBeenDisconnected {
                 return;
             }
 
@@ -392,9 +399,11 @@ impl ClientManager {
 
                 sleep(Duration::from_millis(200));                  
 
-                if *self.is_master_client_disconnected.read().unwrap() {
+                let conn_guard = self.master_client_connection.read().unwrap();
+                if *conn_guard == MasterClientConnectionHealth::HasBeenDisconnected {
                     return;
                 }
+                drop(conn_guard);
 
             }
 
