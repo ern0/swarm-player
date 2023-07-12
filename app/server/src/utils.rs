@@ -1,8 +1,8 @@
-#![allow(unused)]
+//#![allow(unused)]
 
 use std::collections::HashMap;
 use std::time::{SystemTime, Duration, UNIX_EPOCH};
-use chrono::prelude::{Utc, Local, DateTime, NaiveDateTime};
+use chrono::prelude::{Utc, Local, DateTime};
 use std::sync::{Arc, RwLock};
 use crate::client::Client;
 
@@ -18,6 +18,7 @@ pub fn systime_to_millis(stamp: SystemTime) -> i64 {
         .as_millis() as i64;
 }
 
+#[allow(dead_code)]
 pub fn now_millis() -> i64 {
     let stamp = SystemTime::now();
     return systime_to_millis(stamp);

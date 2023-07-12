@@ -1,4 +1,4 @@
-#![allow(unused)]
+//#![allow(unused)]
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -7,7 +7,7 @@ use std::time::{SystemTime, Duration};
 use std::thread::{sleep, spawn};
 use std::sync::{Arc, RwLock};
 use simple_websockets::{Event, Message, Responder};
-use crate::utils::{now_string, systime_to_millis, systime_to_string, millis_to_string, ClientList};
+use crate::utils::{now_string, systime_to_string, millis_to_string, ClientList};
 use crate::client::Client;
 use crate::packet::Packet;
 
