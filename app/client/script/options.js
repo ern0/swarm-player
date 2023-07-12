@@ -9,14 +9,14 @@ function init_options()
 
 function init_const_options()
 {
-	app.opt_autoconnect = AUTOCONNECT;
-	if (app.opt_autoconnect) {
-		log("autoconnect is on");
-	}
-
 	app.opt_skew = CLOCK_SKEW;
 	if (app.opt_autoconnect) {
 		log("skew value is " + app.opt_skew + " ms");
+	}
+
+	app.opt_autoconnect = AUTOCONNECT;
+	if (app.opt_autoconnect) {
+		log("autoconnect is on");
 	}
 }
 
@@ -62,20 +62,4 @@ function is_dev_machine()
 	if (v.indexOf("Chrome/") == -1) return false;
 
 	return true;
-}
-
-function init_url_option_autoconnect(url)
-{
-	app.opt_autoconnect = url.searchParams.get("autoconnect");
-	if (app.opt_autoconnect == null) {
-		app.opt_autoconnect = false;
-	}
-
-	if (!app.opt_autoconnect) {
-		app.opt_autoconnect = +app.opt_autoconnect;
-	}
-
-	if (app.opt_autoconnect) {
-		log("autoconnect is active");
-	}
 }

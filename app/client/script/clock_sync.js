@@ -6,7 +6,7 @@ function get_raw_clock()
 
 function get_clock(parm = undefined)
 {
-	if (typeof (parm) == "undefined") {
+	if (typeof(parm) == "undefined") {
 		var now = get_raw_clock();
 	} else {
 		var now = parm;
