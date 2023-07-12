@@ -19,6 +19,7 @@ function init_admin_ui()
 	Array.prototype.filter.call(elms, function(elm) {
 		elm.style.fontSize = "3vmin";
 	});
+
 }
 
 function init_admin_resize_handler()
@@ -55,6 +56,9 @@ function admin_socket_open()
 	for (var cell in app.admin_cells) {
 		admin_remove(cell);
 	}
+
+	for (var i = 1000; i < 1080; i++) app.admin_cells[i] = null;
+
 }
 
 function admin_socket_close()
@@ -275,13 +279,24 @@ function admin_add(id)
 
 	admin_rethink();
 	admin_repaint();
-
 }
 
 function admin_remove(id)
 {
 	delete app.admin_cells[id];
-	$(mk_cell_id(id, "cell")).remove();
-	admin_rethink();
-	admin_repaint();
+
+	var cell = $(mk_cell_id(id, "cell"));
+	if (cell == null) return;
+	cell.classList.add("uncell");
+	var title = $(mk_cell_id(id, "title"));
+	title.classList.add("admin-untitle");
+
+	cell.style.opacity = 0;
+	cell.style.transition = "opacity 1s ease-out 0.4s";
+
+	setTimeout(function() {
+		cell.remove();
+		admin_rethink();
+		admin_repaint();
+	}, 1300);
 }
