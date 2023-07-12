@@ -1,8 +1,8 @@
 #![allow(unused)]
 
 use std::collections::HashMap;
-use std::time::{SystemTime, UNIX_EPOCH};
-use chrono::prelude::{Utc, Local, DateTime};
+use std::time::{SystemTime, Duration, UNIX_EPOCH};
+use chrono::prelude::{Utc, Local, DateTime, NaiveDateTime};
 use std::sync::{Arc, RwLock};
 use crate::client::Client;
 
@@ -26,10 +26,18 @@ pub fn now_millis() -> i64 {
 pub fn systime_to_string(stamp: SystemTime) -> String {
 
     let datetime: DateTime<Local> = stamp.into();
-    return datetime.format("%T").to_string();
+    return datetime.format("%T.%3f").to_string();
 }
 
 pub fn now_string() -> String {
     let stamp = SystemTime::now();
     return systime_to_string(stamp);
+}
+
+pub fn millis_to_string(stamp_millis: i64) -> String {
+
+    let duration = UNIX_EPOCH + Duration::from_millis(stamp_millis as u64);
+    let datetime = DateTime::<Utc>::from(duration);
+
+    return systime_to_string(datetime.into());
 }

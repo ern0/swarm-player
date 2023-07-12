@@ -7,7 +7,7 @@ use std::time::{SystemTime, Duration};
 use std::thread::{sleep, spawn};
 use std::sync::{Arc, RwLock};
 use simple_websockets::{Event, Message, Responder};
-use crate::utils::{now_string, systime_to_millis, systime_to_string, ClientList};
+use crate::utils::{now_string, systime_to_millis, systime_to_string, millis_to_string, ClientList};
 use crate::client::Client;
 use crate::packet::Packet;
 
@@ -160,22 +160,23 @@ impl ClientManager {
 
         let message = packet.get_str(0);
         let delay_mark = {
-            if packet.get_bool(1) { "?" } else { "" }
+            if packet.get_bool(1) { "!: >" } else { ": >" }
         };
-        let stamp = packet.get_num(2);
+        let stamp_millis = packet.get_num(2);
+        let stamp_string = millis_to_string(stamp_millis);
 
         println!(
             "[{}] {}{} {}",
             client_id, 
-            stamp, 
+            stamp_string, 
             delay_mark, 
             message,
             );       
         if let Err(e) = writeln!(
             file, 
-            "[{}] {}{}: {}", 
+            "[{}] {}{} {}", 
             client_id, 
-            stamp,
+            stamp_string,
             delay_mark,
             message,
             ) {
