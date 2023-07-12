@@ -61,7 +61,7 @@ impl ClientManager {
                 "{} [mgr]: broadcast: {}", 
                 now_string(),
                 text_immutable,
-                );
+            );
         }
 
         let hash_map = self.clients.read().unwrap();
@@ -81,7 +81,7 @@ impl ClientManager {
         println!(
             "{} [mgr]: server is up",
             now_string(),
-            );
+        );
 
         loop {
             match event_hub.poll_event() {
@@ -104,7 +104,7 @@ impl ClientManager {
             "{} [{}]: connected", 
             now_string(),
             client_id,
-            );
+        );
 
         let client = self.create_client(client_id, responder);
         self.send_id_to_client(client_id, &client);

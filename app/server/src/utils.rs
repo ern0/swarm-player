@@ -1,4 +1,4 @@
-#![allow(unused)]
+//#![allow(unused)]
 
 use std::collections::HashMap;
 use std::time::{SystemTime, Duration, UNIX_EPOCH};
