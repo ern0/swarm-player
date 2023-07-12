@@ -38,12 +38,7 @@ impl ClientManager {
                 },
 
                 Event::Disconnect(client_id) => {
-
-                    //self.disconnect(&client_id);                
-
-                    println!("Client #{} disconnected.", client_id);
-                    self.clients.remove(&client_id);
-
+                    self.disconnect(&client_id);                
                 },
 
                 Event::Message(client_id, message) => {
@@ -61,9 +56,9 @@ impl ClientManager {
 
     }
 
-    fn disconnect(mut self: ClientManager, client_id: u64) {
+    fn disconnect(self: &mut ClientManager, client_id: &u64) {
 
-        println!("Client #{} disconnected.", client_id);
+        println!("Client #{} disconnected.", &client_id);
         self.clients.remove(&client_id);
 
     }

@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 mod client_manager;
 mod client;
 
