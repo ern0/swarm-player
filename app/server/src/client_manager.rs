@@ -241,12 +241,12 @@ impl ClientManager {
 
             "CLOCK_SKEW" => {
                 let mut client = shared_client.write().unwrap();
-                //TODO
+                client.process_report_clock_skew(&packet);
             },
 
             "AUDIO_LAG" => {
                 let mut client = shared_client.write().unwrap();
-                client.process_report_audio(&packet);
+                client.process_report_audio_lag(&packet);
             },
 
             _ => {},

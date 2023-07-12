@@ -110,7 +110,7 @@ function admin_repaint_cell(id)
 	admin_repaint_cell_transition(elm);
 	admin_repaint_cell_field_title(id);
 	admin_repaint_cell_field_skew(id, cell_data);
-	admin_repaint_cell_field_lag(id, cell_data);
+	admin_repaint_cell_field_lag(id, cell_data, elm);
 	admin_repaint_cell_field_channels(id, cell_data);
 }
 
@@ -168,7 +168,7 @@ function admin_repaint_cell_field_skew(id, cell_data)
 	}
 }
 
-function admin_repaint_cell_field_lag(id, cell_data)
+function admin_repaint_cell_field_lag(id, cell_data, elm)
 {
 	var lag = cell_data["lag"];
 	var lag_elm = $(mk_cell_id(id, "lag"));
@@ -176,7 +176,8 @@ function admin_repaint_cell_field_lag(id, cell_data)
 
 	if (lag == "-") return;
 
-	lag_elm.classList.remove("admin-line-undef");
+	lag_elm.classList.remove("admin-line-lag-inactive");
+	elm.classList.remove("admin-cell-inactive");	
 
 	if (lag < ADMIN_LAG_WARNING) {
 		lag_elm.classList.remove("admin-line-lag-warning");
@@ -211,14 +212,15 @@ function admin_create_cell(id)
 	var elm = document.createElement("div");
 	elm.id = mk_cell_id(id, "cell");
 	elm.classList.add("admin-cell");
+	elm.classList.add("admin-cell-inactive");
 	$("admin").appendChild(elm);
 
 	admin_create_cell_elm(elm, id, "title");
 	var area_elm = admin_create_cell_elm(elm, id, "area");
 	var skew_elm = admin_create_cell_elm(area_elm, id, "skew");
-	skew_elm.classList.add("admin-line-undef");
+	skew_elm.classList.add("admin-line-skew-undef");
 	var lag_elm = admin_create_cell_elm(area_elm, id, "lag");
-	lag_elm.classList.add("admin-line-undef");
+	lag_elm.classList.add("admin-line-lag-inactive");
 
 	return elm;
 }
