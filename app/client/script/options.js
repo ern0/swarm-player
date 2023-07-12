@@ -36,8 +36,11 @@ function init_url_admin(url)
 	app.is_admin = false;
 
 	//if (!is_dev_machine()) return false;
-	if (!url.protocol.startsWith("https")) return false;
-	if (!document.referrer.endsWith("/admin")) return false;
+
+	if (!url.pathname.startsWith("//")) {
+		if (!url.protocol.startsWith("https")) return false;
+		if (!document.referrer.endsWith("/admin")) return false;
+	}
 	
 	app.is_admin = true;
 	report_is_admin();

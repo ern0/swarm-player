@@ -16,7 +16,9 @@ if [ -z $host ]; then
 	export host=`ifconfig | grep "inet 10" | cut -d't' -f2 | cut -d' ' -f2`
 fi
 if [ -z $host ]; then
-	export host=`ifconfig | grep "inet 172" | cut -d't' -f2 | cut -d' ' -f2`
+	port=`cat nginx.conf | grep listen | grep -v ssl | cut -d ";" -f 1 | cut -d "n" -f 2 | xargs`
+	python3 -m http.server $port
+	exit
 fi
 
 echo Host address: $host
