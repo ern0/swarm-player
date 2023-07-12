@@ -105,8 +105,6 @@ function handle_socket_open(event) {
 function handle_socket_message(event) {
 	packet = JSON.parse(event.data);
 
-	console.log("packet", packet);
-
 	if (packet.type == "DISPLAY") display(packet.data);
 	if (packet.type == "CLK_REF") clock_sync_eval(packet.data[0]);
 	
@@ -225,7 +223,7 @@ function clock_sync_calc_skew(clock_ref) {
 	var change = Math.abs(app.clock_skew - skew);
 	if (change > 50) app.clock_skew = skew;
 
-	///clock_sync_debug(clock_ref, turnaround, distance, estimation, skew, change);
+	//clock_sync_debug(clock_ref, turnaround, distance, estimation, skew, change);
 }
 
 function clock_sync_reschedule() {
