@@ -1,18 +1,38 @@
 function init_gui() {
-
+	
 	app.color_timeout = null;
+	init_buttons();
+	init_https_link();
 
+}
+
+function init_buttons()
+{
 	elm("connect").onclick = handle_button_connect;
 	elm("abort").onclick = handle_button_abort_or_disconnect;
 	elm("disconnect").onclick = handle_button_abort_or_disconnect;
 
-	elm("cmd_red").onclick = handle_button_cmd;
-	elm("cmd_green").onclick = handle_button_cmd;
-	elm("cmd_blue").onclick = handle_button_cmd;
-	elm("cmd_yellow").onclick = handle_button_cmd;
-	elm("cmd_gray").onclick = handle_button_cmd;
+	elm("color_red").onclick = handle_button_cmd;
+	elm("color_orange").onclick = handle_button_cmd;
+	elm("color_green").onclick = handle_button_cmd;
+	elm("color_blue").onclick = handle_button_cmd;
 
 	elm("local").onclick = beep;
+	elm("reload").onclick = handle_button_cmd;
+}
+
+
+function init_https_link() 
+{
+	var url = new URL(document.location.href);
+
+	if (url.protocol.startsWith("https")) {
+		hide("https_div");
+		return;
+	} 
+
+	var link = "https://" + url.hostname + url.pathname;
+	elm("https_link").setAttribute("href", link);
 }
 
 function display(content)
@@ -83,6 +103,14 @@ function handle_button_abort_or_disconnect()
 
 function handle_button_cmd()
 {
-	var color = this.id.split("_")[1];
-	send("COLOR", [color]);
+	var a = this.id.split("_");
+	var action = a[0];
+	var color = a[1];
+
+	if (action == "reload") {
+		send("RELOAD", []);
+	}
+	if (action == "color") {
+		send("COLOR", [color]);
+	}
 }

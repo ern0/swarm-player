@@ -46,6 +46,10 @@ function process_packet(packet)
 		clock_sync_eval(packet.data[0]);
 	}
 
+	if (packet.type == "RELOAD") {
+		document.location.reload();
+	}
+
 	if (packet.type == "DISPLAY") {
 		display(packet.data[0]);
 	}
