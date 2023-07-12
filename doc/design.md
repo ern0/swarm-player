@@ -115,10 +115,10 @@ time synchronization is already implemented.
   e.g. sets background color
 
 
-## Milestone 3: Development features
+## Milestone 3: Fix issues arisen meantime
 
-Implement Development comfort functions.
-Use `nginx` for HTTPS and WSS support.
+Make enhancements which can no longer be postponed,
+and fix non-functionality problems appeared.
 
 
 ### Web proxy
@@ -130,18 +130,24 @@ Configure `nginx` for web server and proxy functions.
 - Make WSS proxy to the server (port 8080)
 
 
-### Client
+### Client features
 
-- Avoid screensaver (browser API and video)
+- Reliable audio playback even on Samsung Galaxy A22:
+  measure audio lag and try to correct it
+- Avoid screensaver: browser API and invisible video
 - Web client update: reload on request
-- Logging to server
-- Reliable audio playback even on Samsung Galaxy A22
+- Logging to server, retry if offline
+- Report values to server 
+  (control station mode, audio lag),
+  re-send on server restart
+- Fix GUO layout for landscape mode
 
 
 ### Server
 
 - Implement logger
-- Collect and provide some stats, fucusing on client lags
+- Implement client report messages
+- Fix packet stamp
 
 
 ### Logistics
@@ -149,7 +155,26 @@ Configure `nginx` for web server and proxy functions.
 Get some devices.
 
 
-## Milestone 4: The channel concept
+## Milestone 4: Control station
+
+The control station should display some information
+on the system (dashboard),
+the server should collect and provide data.
+
+
+### Client
+
+- Dashboard: show active clients with ID and info
+- Show connect and disconnect
+
+
+### Server
+
+- Collect dashboard data
+- Push data upon change
+
+
+## Milestone 5: The channel concept
 
 The Player should request the server
 to split up clients to *Channels*, which
