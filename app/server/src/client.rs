@@ -18,10 +18,11 @@ impl Client {
             let parsed: JsonValue = text.parse().unwrap();
             let root_object: &HashMap<_, _> = parsed.get().unwrap();
             let message_type = self.parse_message_type(root_object);
-            println!("---------[{}]", message_type);
+            println!("---------[TYPE:{}]", message_type);
 
             if message_type == "req.clk" {
-                //let arg = self.parse_message_data_int(root_object, 1);
+                let arg = self.parse_message_data_int(root_object, 0);
+                println!("----------[DATA:{}]", arg);
                 //process_request_clock(arg);
             }
         }
@@ -36,6 +37,19 @@ impl Client {
         }
 
         return String::from("n.a.");
+    }
+
+    fn parse_message_data_int(&self, root_object: &HashMap<String, JsonValue>, index: usize) -> i32 {
+
+        let data_vec: &JsonValue = root_object.get(&String::from("data")).unwrap();
+        if let JsonValue::Array(vec) = data_vec {
+            let elem = &vec[index];
+            if let JsonValue::Number(num) = elem {
+                return *num as i32;
+            }
+        }
+
+        return 0;
     }
 
 }
