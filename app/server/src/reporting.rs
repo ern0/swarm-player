@@ -41,14 +41,16 @@ impl Reporting {
 		}
 
 		pub fn start(self: Arc<Self>) {
-        spawn(move || self.run());
+            spawn(move || self.run());
 		}
 
 		pub fn run(&self) {			
-        loop {
-            self.wait_for_master_client();
-            self.report_to_master_client();
-        }
+
+            loop {
+                self.wait_for_master_client();
+                self.report_to_master_client();
+            }
+
     }    
 
     fn wait_for_master_client(&self) {
@@ -58,9 +60,11 @@ impl Reporting {
 
         loop {
 
-            let lock: &RwLock<Option<SharedClient>> = &self.master_client;
-            let opt: &Option<SharedClient> = &lock.read().unwrap();
-            if !opt.is_none() { return; }
+            { // drop() is not enough, must enclose in a scope
+                let lock: &RwLock<Option<SharedClient>> = &self.master_client;
+                let opt: &Option<SharedClient> = &lock.read().unwrap();
+                if !opt.is_none() { return; }
+            }
 
             sleep(Duration::from_secs(1));
         }
