@@ -11,6 +11,7 @@ function main()
 {
 	app = {};
 
+	init_log();
 	init_awake();
 	init_options();
 	init_audio();
