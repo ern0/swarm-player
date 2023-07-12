@@ -26,7 +26,7 @@ impl ClientManager {
         return ClientManager {
             client_list: client_list.clone(),
             reporting: Reporting::new(client_list.clone()),
-            channel_manager: ChannelManager::new(client_list.clone()),
+            channel_manager: ChannelManager::new(client_list),
             debug: false,
         };
     }
@@ -204,12 +204,12 @@ impl ClientManager {
 
             "CLOCK_SKEW" => {
                 let mut client = shared_client.write().unwrap();
-                client.process_report_clock_skew(&packet);
+                client.process_report_clock_skew(packet);
             },
 
             "AUDIO_LAG" => {
                 let mut client = shared_client.write().unwrap();
-                client.process_report_audio_lag(&packet);
+                client.process_report_audio_lag(packet);
             },
 
             _ => {},

@@ -1,4 +1,5 @@
 #![allow(unused)]
+#![allow(clippy::needless_return)]
 
 use crate::utils::{SharedClient, SharedClientList};
 use crate::utils::ClientId;

@@ -1,4 +1,5 @@
 //#![allow(unused)]
+#![allow(clippy::needless_return)]
 
 use std::collections::HashMap;
 use std::time::{SystemTime, Duration, UNIX_EPOCH};

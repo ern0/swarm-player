@@ -1,4 +1,5 @@
 //#![allow(unused)]
+#![allow(clippy::needless_return)]
 
 use std::time::SystemTime;
 use simple_websockets::{Message, Responder};

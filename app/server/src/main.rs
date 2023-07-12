@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 mod utils;
 mod client_manager;
 mod channel_manager;

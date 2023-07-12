@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 use std::collections::HashMap;
 use std::vec::Vec;
 use tinyjson::JsonValue;
@@ -29,7 +31,7 @@ impl Packet {
     pub fn new_simple_num(cmd: &str, parm: i64) -> Self {
 
         let mut packet = Packet::new();
-        packet.set_type(&cmd);
+        packet.set_type(cmd);
         packet.set_num(0, parm);
 
         return packet;
@@ -39,8 +41,8 @@ impl Packet {
     pub fn new_simple_str(cmd: &str, parm: &str) -> Self {
 
         let mut packet = Packet::new();
-        packet.set_type(&cmd);
-        packet.set_str(0, &parm);
+        packet.set_type(cmd);
+        packet.set_str(0, parm);
 
         return packet;
     }
@@ -110,12 +112,7 @@ impl Packet {
         let left_char = &self.data_as_str[index][0..1];
         let left_upcase = left_char.to_uppercase();
 
-        return match left_upcase.as_str() {
-            "F" => false,
-            "N" => false,
-            "0" => false,
-            _ => true,
-        };
+        return !matches!(left_upcase.as_str(), "F" | "N" | "0");
     }
 
     pub fn render_json(&self) -> String {
@@ -125,7 +122,7 @@ impl Packet {
         json.push_key("type");
         json.push_quoted(self.get_type());
         
-        json.push_str(",");
+        json.push(',');
         json.push_key("stamp");
         match self.get_sync_mode() {
             SyncMode::SyncData => {
@@ -137,17 +134,17 @@ impl Packet {
             },
         }
         
-        json.push_str(",");
+        json.push(',');
         json.push_key("data");
         
-        json.push_str("[");
+        json.push('[');
         let mut first = true;
         for index in 0 .. self.data_as_num.len() {
 
             if first {
                 first = false;
             } else {
-                json.push_str(",")
+                json.push(',')
             }
 
             let num_value = &self.data_as_num[index];
@@ -159,8 +156,8 @@ impl Packet {
             }          
 
         }
-        json.push_str("]");
-        json.push_str("}");
+        json.push(']');
+        json.push('}');
 
         return json;
 
@@ -181,14 +178,14 @@ impl JsonCreatorExt for String {
     }
 
     fn push_quoted(&mut self, value: &str) {
-        self.push_str("\"");
+        self.push('\"');
         self.push_str(value);
-        self.push_str("\"");
+        self.push('\"');
     }
 
     fn push_key(&mut self, key: &str) {
         self.push_quoted(key);
-        self.push_str(":");
+        self.push(':');
     }
 
 }
@@ -202,11 +199,11 @@ impl From<&String> for Packet {
         let mut num_vec: Vec<i64> = Vec::new();
         let mut str_vec: Vec<String> = Vec::new();
 
-        let packet_type = parse_type(&root_object);
-        parse_data(&root_object, &mut num_vec, &mut str_vec);
+        let packet_type = parse_type(root_object);
+        parse_data(root_object, &mut num_vec, &mut str_vec);
 
         return Packet {
-            packet_type: packet_type,
+            packet_type,
             data_as_num: num_vec,
             data_as_str: str_vec,
             stamp_millis: now_millis(),
@@ -229,8 +226,7 @@ fn parse_data(root_object: &JsonObj, num_vec: &mut Vec<i64>, str_vec: &mut Vec<S
     let data_arr: &JsonValue = root_object.get("data").unwrap();
     if let JsonValue::Array(vec) = data_arr {
 
-        for index in 0 .. vec.len() {
-            let elem = &vec[index];
+        for elem in vec {
 
             match elem {
                 JsonValue::Number(num) => {                    

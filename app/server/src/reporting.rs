@@ -1,4 +1,5 @@
 #![allow(unused)]
+#![allow(clippy::needless_return)]
 
 use std::thread::{sleep, spawn};
 use std::time::Duration;
