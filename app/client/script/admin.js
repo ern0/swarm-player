@@ -36,6 +36,7 @@ function init_admin_resize_handler()
 			admin_rethink();
 			admin_repaint();		
 		}, 500);
+
 	};
 }
 
@@ -54,8 +55,6 @@ function admin_socket_open()
 	for (var cell in app.admin_cells) {
 		admin_remove(cell);
 	}
-
-	for (var i = 0; i < 15; i++) admin_add(i); //TODO: remove
 }
 
 function admin_socket_close()
@@ -194,6 +193,7 @@ function admin_rethink_find_best_cell_side()
 
 function admin_rethink_calc_slack(cell_side)
 {
+	if (cell_side >= (app.admin_area_width / 2)) return -1;
 	var column_count = Math.floor(app.admin_area_width / cell_side);
 	if (column_count < 1) return -1;
 
@@ -204,13 +204,14 @@ function admin_rethink_calc_slack(cell_side)
 
 function admin_rethink_adjust_width()
 {
+	if (app.admin_cell_count < 2) return 0;
+
 	var column_count = Math.floor(app.admin_area_width / app.admin_best_cell_side) ;
 	var cell_extra_width = admin_rethink_calc_extra_width(column_count);
 
 	var orphan_cell_count = app.admin_cell_count % column_count;
 	var empty_place_count = column_count - orphan_cell_count - 1;
-	var filled_row_count = Math.floor(app.admin_cell_count / column_count);
-	
+	var filled_row_count = Math.floor(app.admin_cell_count / column_count);	
 	var fill_empty_places = (empty_place_count >= filled_row_count);
 	if (orphan_cell_count == 0) fill_empty_places = false;
 	if (fill_empty_places) {
