@@ -114,12 +114,15 @@ function admin_repaint_cell_design(elm, id)
 	var cell_pos = app.admin_cells[id];
 	elm.style.left = cell_pos[0] + "px";
 	elm.style.top = cell_pos[1] + "px";
+	elm.style.opacity = cell_pos[2];
 
-	var t = 0.5 + Math.random() * 0.7;
-	var d = Math.random() * 1.2;
+	var duration = 0.3 + Math.random() * 0.2;
+	var opacity_duration = duration + 0.4;
+	var delay = Math.random() * 0.1;
 	elm.style.transition = (
-		"all " + (t) + "s ease-out " + (d) + "s, " +
-		"font-size " + (t) + "s linear " + (d) + "s");
+		"all " + (duration) + "s ease-out " + (delay) + "s, " +
+		"font-size " + (duration) + "s linear " + (delay) + "s, " +
+		"opacity " + (opacity_duration) + "s ease-in");
 }
 
 function admin_repaint_cell_content(elm, id)
@@ -238,7 +241,7 @@ function admin_rethink_renumber()
 
 	for (var id in app.admin_cells) {
 
-		app.admin_cells[id] = [x, y];
+		app.admin_cells[id] = [x, y, 1];
 
 		x = next_x;
 		next_x += app.admin_cell_width;
@@ -259,9 +262,20 @@ function mk_cell_dim()
 
 function admin_add(id)
 {
-	app.admin_cells[id] = null;
+	admin_rethink();
+
+	var x = (app.admin_area_width - app.admin_cell_width) / 2;
+	var y = (app.admin_area_height - app.admin_cell_height) / 2;
+	app.admin_cells[id] = [x, y, 0];
+	admin_repaint();
+
+	var cell = $(mk_cell_id(id, "cell"));
+	cell.style.width = app.admin_cell_width / 4;
+	cell.style.height = app.admin_cell_height / 4;
+
 	admin_rethink();
 	admin_repaint();
+
 }
 
 function admin_remove(id)
