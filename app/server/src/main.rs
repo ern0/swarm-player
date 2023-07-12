@@ -11,7 +11,7 @@ pub fn main() {
 
     let event_hub = simple_websockets::launch(8080)
         .expect("failed to listen on port 8080");
-    println!("Server is up");
+    println!("server is up");
 
     let client_manager = ClientManager::new(event_hub);
     let cm1 = Arc::new(client_manager);
