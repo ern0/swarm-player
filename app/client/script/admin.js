@@ -52,7 +52,9 @@ function first_rethink_repaint()
 }
 
 function admin_socket_open()
-{
+{ 
+	if (!app.is_admin) return;
+
 	for (var cell in app.admin_cells) {
 		admin_remove(cell);
 	}
@@ -73,6 +75,7 @@ function mk_cell_id(id, token)
 
 function admin_add_self() 
 {
+	if (!app.is_admin) return;
 	admin_add(app.client_id);
 }
 
