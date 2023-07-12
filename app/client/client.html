@@ -1,13 +1,14 @@
 <html>
 	<head>
 		<style>
-			body, button { font-family: sans-serif; font-size: 8vw; }
-			div { text-align: center; }
-			button { margin-bottom: 1.0vh; }
-			#control { padding: 12px; }
-			#awake { width: 100%; height: 1px; }
-			button { height: 8%; width: 90%; }
-			#reload { color: white; background: black; }
+			body, button { font-family: sans-serif; font-size: 4.5vh; }
+			#awake { width: 100%; height: 1px; }			
+			.em { font-weight: bold; color: #333366; background: #eeeeff; padding: 1vh 2vh 1vh 2vh; border: 1px solid gray; }
+			.screen { text-align: center; }
+			.opregion { margin-bottom: 3.5vh; }
+			#disconnect { margin-top: 3.5vh; }
+			button { height: 10%; width: 70%; margin-bottom: 1.0vh;  }
+			#reload { color: white; background: #333333; }
 			#https_div { width: 100%; text-align: center; }
 		</style>
 		<script src="script/main.js"></script>
@@ -25,46 +26,51 @@
 	</head>
 
 	<body>
+
 		<video id="awake"> </video>
 
-		<div id="welcome">
+		<div id="welcome" class="screen">
 			Click to connect.
 			<br />
 			<button id="connect"> connect </button>
 		</div>
 
-		<div id="op">
+		<div id="op" class="screen">
 
-			<div>
-				client #<span id="id"></span> &ndash; counter: [<span id="counter"></span>]
+			<div id="title" class="opregion">
+				<span class="em">#<span id="id"></span></span> 
+				&ndash; 
+				counter: [<span id="counter"></span>]
 			</div>
-			<br/>
-			<button id="disconnect"> disconnect </button>
+			
+			<div class="opregion">
+				<button id="disconnect"> disconnect </button>
+			</div>
 
-			<div id="control">
+			<div class="opregion">
 				<button style="background: red; color: white;" id="color_red"> red </button>
-				<br />
 				<button style="background: orange; color: black;" id="color_orange"> orange </button>
-				<br />
 				<button style="background: green; color: white;" id="color_green"> green </button>
-				<br />
 				<button style="background: blue; color: white;" id="color_blue"> blue </button>
-				<br />
-				<br />
+			</div>
+
+			<div class="opregion">
 				<button id="local"> local beep </button>
-				<br />
 				<button id="reload"> reload </button>
 			</div>
 
-			<div id="https_div"><a id="https_link" href="#">Switch to HTTPS</a></div>
+			<div id="https_div" class="opregion">
+				<a id="https_link" href="#">Switch to HTTPS</a>
+			</div>
+
 		</div>
 
-		<div id="join">
+		<div id="join" class="screen">
 			Join the hotspot!
 			<button id="abort"> abort </button>
 		</div>
 
-		<div id="bye">
+		<div id="bye" class="screen">
 			You are disconnected.
 		</div>
 
