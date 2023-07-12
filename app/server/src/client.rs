@@ -178,7 +178,6 @@ mod tests {
         let json = packet.render_json();
         assert!(json.contains(r#"type":"REPORT"#));
      }
-
      #[test]
      fn report_create_empty() {
         let client = create_client(12);
@@ -186,23 +185,21 @@ mod tests {
         let json = packet.render_json();
         assert!(json.contains(r#"data":[12,"-","-"#));
      }
-
      #[test]
      fn report_create_skew_set() {
         let mut client = create_client(12);
         client.clock_skew = Some(10);
         let packet = client.create_report(0);
         let json = packet.render_json();
-        assert!(json.contains(r#"data":[12,10,"-"#));
+        assert!(json.contains(r#""data":[12,10,"-""#));
      }
-
      #[test]
      fn report_create_lag_set() {
         let mut client = create_client(16);
         client.audio_lag = Some(3);
         let packet = client.create_report(0);
         let json = packet.render_json();
-        assert!(json.contains("\"data\":[16,\"-\",3"));
+        assert!(json.contains(r#""data":[16,"-",3,"#));
      }
      fn report_create_both_set() {
         let mut client = create_client(21);
@@ -210,7 +207,7 @@ mod tests {
         client.audio_lag = Some(321);
         let packet = client.create_report(0);
         let json = packet.render_json();
-        assert!(json.contains("\"data\":[21,12,321"));
+        assert!(json.contains(r#""data":[21,12,321,"#));
      }
 
 }
