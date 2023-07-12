@@ -1,4 +1,4 @@
-#[allow(unused)]
+#![allow(unused)]
 
 use std::collections::HashMap;
 use simple_websockets::{ Event, EventHub, Responder, Message };
