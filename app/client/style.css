@@ -38,10 +38,24 @@ body, button {
 	height: 100%;
 }
 
+.admin-cell {
+	display: inline-block;
+	position: absolute;
+	background: #eeeeff;
+	border: 1px solid #003399;
+}
+
+.admin-uncell {
+	border: 1px solid #003399;
+	background: #ffeeee;
+	color: #993300;
+}
+
 .admin-title {
 	text-align: center;
 	background: #003399;
 	color: #eeeeff;
+	padding-bottom: 1px;
 }
 
 .admin-untitle {
@@ -49,19 +63,15 @@ body, button {
 	color: #ffeeee;
 }
 
-.cell {
-	display: inline-block;
-	position: absolute;
-	border: 2px solid #000044;
-	margin: 2px;
-	background: #eeeeff;
+.admin-area {
 	color: #003399;
-	text-align: center;
+	text-align: left;
+	font-family: 'Fira Code', Courier, monospace;
+	font-weight: bold;
+	padding: 2px;
 }
 
-.uncell {
-	border: 2px solid #440000;
-	background: #ffeeee;
+.admin-unarea {
 	color: #993300;
 }
 

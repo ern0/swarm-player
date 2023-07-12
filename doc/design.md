@@ -184,6 +184,14 @@ Milestone features:
 - push data upon change.
 
 
+### Dashboard data
+
+- client ID
+- clock skew
+- audio lag
+- channels 
+
+
 ## Milestone 5: The channel concept
 
 The Player should request the server
