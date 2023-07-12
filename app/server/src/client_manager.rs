@@ -174,12 +174,12 @@ impl ClientManager {
                 client.process_request_clk0();
             },            
 
-            "ADMIN" => {
+            "MASTER" => {
                 let mut value = self.master_client.write().unwrap();
                 *value = Some(shared_client.clone());
 
                 let client = shared_client.read().unwrap();
-                client.process_report_admin();
+                client.process_report_master();
             },
 
             "AUDIO" => {
