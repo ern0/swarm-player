@@ -26,7 +26,7 @@ impl ClientManager {
         let clients_lock = RwLock::new(clients_hash_map);
         let clients = Arc::new(clients_lock);
 
-        let master_value = None;
+        let master_value: Option<SharedClient> = None;
         let master_lock = RwLock::new(master_value);
         let master_client = Arc::new(master_lock);
 
@@ -43,7 +43,7 @@ impl ClientManager {
         let s1 = s0.clone();
         let s2 = s0.clone();
 
-        spawn(move || s1.run_display_counter());
+        spawn(move || s1.run_reporting());
         spawn(move || s2.run_event_hub());
     }
 
@@ -235,23 +235,34 @@ impl ClientManager {
         }
     }
 
-    fn run_display_counter(&self) {
+    fn run_reporting(&self) {
 
-        let mut packet = Packet::new();
-        packet.set_type("DISPLAY");
-        packet.set_str(0, "counter");
-
-        sleep(Duration::from_secs(1));
-
-        let mut counter = 0;
-        loop {        
-            packet.set_num(1, counter);
-            self.broadcast(&packet);
-            counter += 1;
-
-            sleep(Duration::from_secs(100));  // TODO: revisit this function
+        loop {
+            sleep(Duration::from_secs(1));
+            self.report_to_master();
         }
 
     }    
+
+    fn report_to_master(&self) {
+
+        let lock: &RwLock<Option<SharedClient>> = &self.master_client;
+        let opt: &Option<SharedClient> = &lock.read().unwrap();
+
+        let shared_client = match opt {
+            Some(value) => value,
+            None => return,
+        };
+
+        let mut packet = Packet::new();
+        packet.set_type("REPORT");
+        packet.set_num(0, 1000);
+        packet.set_num(1, 300);
+        packet.set_num(2, 3);
+        packet.set_num(3, 0);
+        
+        let client = shared_client.read().unwrap();
+        client.send_packet(&packet);
+    }
 
 }

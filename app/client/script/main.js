@@ -96,12 +96,8 @@ function process_packet_now(packet)
 		}
 	}
 
-	if (packet.type == "DISPLAY") {
-		display(packet.data[0], packet.data[1]);
-	}
-
-	if (packet.type == "COLOR") {
-		flash_color(packet.data[0]);
+	if (packet.type == "REPORT") {
+		console.log("report");
 	}
 
 }
