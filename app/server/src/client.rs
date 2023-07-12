@@ -1,5 +1,7 @@
-//#![allow(unused)]
+#![allow(unused)]
 
+use std::time::Duration;
+use std::thread::sleep;
 use simple_websockets::{Message, Responder};
 use crate::utils::{now, ClientList};
 use crate::packet::Packet;
@@ -33,13 +35,15 @@ impl Client {
             "CLK_0" => self.process_request_clk0(&packet),
             _ => {},
         }
+
     }
 
-    fn send_now(&self, text: &str) {
-        
+    fn send(&self, text: &str) {
+
         println!("[{}] send: {}", self.id, text);
         let message = Message::Text(text.to_string());
         self.responder.send(message);
+
     }
 
     fn process_request_clk0(&self, packet: &Packet) {
@@ -52,7 +56,8 @@ impl Client {
         let packet: Packet = Packet::new_simple_num("CLK_REF", clk_server);
 
         let json = packet.render_json(clk_server);        
-        self.send_now(&json);
+        self.send(&json);
+
     }
 
 }

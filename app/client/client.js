@@ -168,7 +168,10 @@ function handle_socket_message(event) {
 	var delay = action - now;
 	if (delay < 1) delay = 1;
 
-	console.log("---- delay:", delay, "----");
+	console.log("--");
+	console.log("now:", action);
+	console.log("action:", action);
+	console.log("delay:", delay);
 
 	setTimeout(function() {
 		process_packet(packet);
