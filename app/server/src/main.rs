@@ -3,7 +3,6 @@ mod client;
 
 use simple_websockets;
 use client_manager::ClientManager;
-use simple_websockets::{ Event, EventHub, Responder, Message };
 
 pub fn main() {
 
