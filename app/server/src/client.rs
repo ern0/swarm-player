@@ -2,23 +2,22 @@
 
 use std::time::SystemTime;
 use simple_websockets::{Message, Responder};
-use crate::utils::{now_string, systime_to_millis, ClientList};
+use crate::utils::{now_string, systime_to_millis, SharedClientList};
 use crate::packet::Packet;
 
 pub struct Client {
-    pub clients: ClientList,
+    pub clients: SharedClientList,
     pub id: u64,
     pub is_admin: bool,
     pub lag: i64,
     pub responder: Responder,
     pub debug: bool,
-    pub seen: SystemTime,
     pub epoch: SystemTime,
 }
 
 impl Client {
 
-    pub fn new(clients: ClientList, id: u64, responder: Responder, debug: bool) -> Self {
+    pub fn new(clients: SharedClientList, id: u64, responder: Responder, debug: bool) -> Self {
 
         return Client {
             clients: clients,
@@ -27,22 +26,8 @@ impl Client {
             lag: 0,
             responder: responder,
             debug: debug,
-            seen: SystemTime::UNIX_EPOCH,
             epoch: SystemTime::now(),
         };
-    }
-
-    pub fn process_incoming_message(self: &mut Client, packet: &Packet) {
-        
-        self.seen = SystemTime::now();
-
-        match packet.get_type().as_str() {
-            "CLK_0" => self.process_request_clk0(),
-            "ADMIN" => self.process_report_admin(),
-            "AUDIO" => self.process_report_audio(&packet),
-            _ => {},
-        }
-
     }
 
     pub fn send_packet(&self, packet: &Packet) {
@@ -68,7 +53,7 @@ impl Client {
 
     }
 
-    fn process_request_clk0(&self) {
+    pub fn process_request_clk0(&self) {
         
         let clk_server = SystemTime::now();
         let clk_millis = systime_to_millis(clk_server);
@@ -76,7 +61,7 @@ impl Client {
         self.send_packet(&packet);
     }
 
-    fn process_report_admin(&mut self) {
+    pub fn process_report_admin(&mut self) {
         
         self.is_admin = true;
 
@@ -87,7 +72,7 @@ impl Client {
             );
     }
 
-    fn process_report_audio(&mut self, packet: &Packet) {
+    pub fn process_report_audio(&mut self, packet: &Packet) {
 
         self.lag = packet.get_num(0);
 
