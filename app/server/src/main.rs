@@ -1,6 +1,7 @@
-mod client;
-mod client_manager;
 mod utils;
+mod client_manager;
+mod client;
+mod packet;
 
 use client_manager::ClientManager;
 use simple_websockets;
