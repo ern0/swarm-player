@@ -1,14 +1,15 @@
 #![allow(unused)]
 
 use std::collections::HashMap;
+use std::vec::Vec;
 use tinyjson::JsonValue;
 
 type JsonObj = HashMap<String, JsonValue>;
 
 pub struct Packet {
     packet_type: String,
-    data_as_num: i64,
-    data_as_str: String,
+    data_as_num: Vec<i64>,
+    data_as_str: Vec<String>,
     stamp: i64,
 }
 
@@ -17,8 +18,8 @@ impl Packet {
     pub fn new() -> Self {
         return Packet {
             packet_type: String::new(),
-            data_as_num: 0, 
-            data_as_str: String::new(),
+            data_as_num: Vec::new(), 
+            data_as_str: Vec::new(),
             stamp: 0,
         };
     }
@@ -27,12 +28,12 @@ impl Packet {
         return &self.packet_type;
     }
 
-    pub fn get_num(&self) -> i64 {
-        return self.data_as_num;
+    pub fn get_num(&self, index: usize) -> i64 {
+        return self.data_as_num[index];
     }
 
-    pub fn get_str(&self) -> &String {
-        return &self.data_as_str;
+    pub fn get_str(&self, index: usize) -> &String {
+        return &self.data_as_str[index];
     }
 
 }
@@ -43,7 +44,7 @@ impl From<&String> for Packet {
 
         let parsed: JsonValue = text.parse().unwrap();
         let root_object: &JsonObj = parsed.get().unwrap();
-        let (num_value, str_value) = parse_data(&root_object, 0, -1);
+        //let (num_value[0], str_value[0]) = parse_data(&root_object, 0, i64::MAX);
 
         return Packet {
             packet_type: parse_type(&root_object),
