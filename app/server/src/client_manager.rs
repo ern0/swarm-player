@@ -37,7 +37,7 @@ impl ClientManager {
         let text_immutable: String = packet.render_json();
         println!("<mgr> broadcast: {}", text_immutable);
 
-        let hash_map = self.clients.write().unwrap();
+        let hash_map = self.clients.read().unwrap();
         for (_id, client) in hash_map.iter() {
             let message = Message::Text(text_immutable.clone());
             client.responder.send(message);
@@ -79,7 +79,7 @@ impl ClientManager {
 
         println!("[{}] disconnected", client_id);
 
-        self.clients.write().unwrap().remove(&client_id);
+        self.write().unwrap().remove(&client_id);
     }
 
     fn on_message(&self, client_id: u64, message: Message) {
@@ -114,8 +114,9 @@ impl ClientManager {
     fn run_display_counter(&self) {
 
         let mut counter = 0;
+        let mut packet = Packet::new_simple_num("DISPLAY", counter);
+
         loop {        
-            let mut packet = Packet::new_simple_num("DISPLAY", counter);
             packet.set_num(0, counter);
             self.broadcast(&packet);
             counter += 1;
