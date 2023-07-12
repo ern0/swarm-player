@@ -4,24 +4,21 @@ use std::collections::HashMap;
 use std::time::Duration;
 use std::thread::{sleep, spawn};
 use std::sync::{Arc, Mutex};
-use std::sync::mpsc;
-use simple_websockets::{Event, EventHub, Message, Responder};
-use crate::utils::now;
+use simple_websockets::{Event, Message, Responder};
+use crate::utils::ClientList;
 use crate::client::Client;
 use crate::packet::Packet;
 
 pub struct ClientManager {
-    event_hub: EventHub,
-    clients: Mutex<HashMap<u64, Client>>,
+    clients: ClientList,
 }
 
 impl ClientManager {
 
-    pub fn new(event_hub: EventHub) -> Self {
+    pub fn new() -> Self {
 
         return ClientManager {
-            event_hub: event_hub,
-            clients: Mutex::new(HashMap::new()),
+            clients: Arc::new(Mutex::new(HashMap::new())),
         };
     }
 
@@ -38,9 +35,9 @@ impl ClientManager {
 
     fn broadcast(&self, packet: &Packet) {
 
-        println!("send broadcast: {}", packet.get_str(0));
-
         let text_immutable: String = packet.render_json();
+        println!("[mgr] send broadcast: {}", text_immutable);
+
         let hash_map = self.clients.lock().unwrap();
         for (_id, client) in hash_map.iter() {
             let message = Message::Text(text_immutable.clone());
@@ -50,8 +47,12 @@ impl ClientManager {
 
     pub fn run_event_hub(&self) {
 
+        let event_hub = simple_websockets::launch(8080)
+            .expect("failed to listen on port 8080");
+        println!("server is up");
+
         loop {
-            match self.event_hub.poll_event() {
+            match event_hub.poll_event() {
                 Event::Connect(client_id, responder) => {
                     self.on_connect(client_id, responder);
                 }
@@ -69,7 +70,8 @@ impl ClientManager {
 
         println!("[{}] connected", client_id);
 
-        let client = Client::new(client_id, responder);
+        let cl = self.clients.clone();
+        let client = Client::new(cl, client_id, responder);
         self.clients.lock().unwrap().insert(client.id, client);
     }
 
