@@ -18,3 +18,4 @@ function gen {
 }
 
 gen design
+gen kikof
