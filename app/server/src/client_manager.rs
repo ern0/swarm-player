@@ -200,6 +200,8 @@ impl ClientManager {
 
                 let client = shared_client.read().unwrap();
                 client.process_report_master();
+
+                self.reporting.sync_client_list();
             },
 
             "CLOCK_SKEW" => {

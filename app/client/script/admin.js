@@ -1,4 +1,4 @@
-function init_admin() 
+function init_admin()
 {
 	if (!app.is_admin) return;
 
@@ -25,7 +25,7 @@ function init_admin_resize_handler()
 {
 	app.resize_timeout = null;
 
-	window.onresize = function() {		
+	window.onresize = function() {
 
 		if (app.resize_timeout != null) {
 			clearTimeout(app.resize_timeout);
@@ -34,13 +34,13 @@ function init_admin_resize_handler()
 		app.resize_timeout = setTimeout(function() {
 			app.resize_timeout = null;
 			admin_rethink();
-			admin_repaint();		
+			admin_repaint();
 		}, 500);
 
 	};
 }
 
-function first_rethink_repaint() 
+function first_rethink_repaint()
 {
 	if ($("admin").getBoundingClientRect().right > 0) {
 		admin_rethink();
@@ -51,7 +51,7 @@ function first_rethink_repaint()
 }
 
 function admin_socket_open()
-{ 
+{
 	if (!app.is_admin) return;
 
 	send("MASTER", []);
@@ -69,12 +69,6 @@ function admin_socket_close()
 function mk_cell_id(id, token)
 {
 	return "admin_" + token + "_" + id;
-}
-
-function admin_add_self(packet) 
-{
-	if (!app.is_admin) return;
-	admin_add(app.client_id);
 }
 
 function admin_elm_self()
@@ -98,7 +92,7 @@ function admin_repaint_cell(id)
 	if (elm == null) {
 		elm = admin_create_cell(id);
 	}
-	
+
 	admin_repaint_cell_box(cell_data, elm);
 	admin_repaint_cell_font(id);
 	admin_repaint_cell_transition(elm, id);
@@ -117,7 +111,7 @@ function admin_repaint_cell_box(cell_data, elm)
 	elm.style.top = cell_data["y"] + "px";
 }
 
-function admin_repaint_cell_font(id) 
+function admin_repaint_cell_font(id)
 {
 	var title_font_size = app.admin_cell_height * 0.2;
 	var title_elm = $(mk_cell_id(id, "title"));
@@ -150,7 +144,7 @@ function admin_repaint_cell_transition(elm, id)
 	$(mk_cell_id(id, "skew")).style.transition = transition;
 	$(mk_cell_id(id, "lag")).style.transition = transition;
 	$(mk_cell_id(id, "channels")).style.transition = transition;
-	
+
 }
 
 function admin_repaint_cell_field_title(id)
@@ -187,24 +181,24 @@ function admin_repaint_cell_field_lag(id, cell_data, elm)
 	if (lag == "-") return;
 
 	lag_elm.classList.remove("admin-line-lag-inactive");
-	elm.classList.remove("admin-cell-inactive");	
+	elm.classList.remove("admin-cell-inactive");
 
 	if (lag < ADMIN_LAG_WARNING) {
 		lag_elm.classList.remove("admin-line-lag-warning");
 	} else {
 		lag_elm.classList.add("admin-line-lag-warning");
-	}	
+	}
 }
 
 function admin_repaint_cell_field_channels(id, cell_data)
 {
-	var channels = cell_data["channels"];	
+	var channels = cell_data["channels"];
 
 	for (var ch = 0; ch < ADMIN_CELL_CHANNELS; ch++) {
 
 		var channel_value_elm = $(mk_cell_id(id, "channel_" + ch));
 		var enabled = (channels >> ch) & 1;
-		
+
 		if (enabled) {
 			channel_value_elm.classList.remove("channel-off");
 			channel_value_elm.classList.add("channel-on");
@@ -225,7 +219,7 @@ function admin_create_cell(id)
 	$("admin").appendChild(cell_elm);
 
 	admin_create_cell_elm(cell_elm, id, "title");
-	
+
 	var skew_elm = admin_create_cell_elm(cell_elm, id, "skew");
 	skew_elm.classList.add("admin-line-skew-undef");
 
@@ -268,7 +262,7 @@ function admin_create_cell_elm(elm, id, item_name)
 	return item_elm;
 }
 
-function admin_rethink() 
+function admin_rethink()
 {
 	admin_rethink_get_base_vars();
 	app.admin_best_cell_side = admin_rethink_find_best_cell_side();
@@ -295,7 +289,7 @@ function admin_rethink_find_best_cell_side()
 	var best_slack = -1;
 	var best_side = -1;
 
-	while (true) {		
+	while (true) {
 
 		cell_side = Math.round(cell_side);
 		var slack = admin_rethink_calc_slack(cell_side);
@@ -341,7 +335,7 @@ function admin_rethink_adjust_width()
 
 	var orphan_cell_count = app.admin_cell_count % column_count;
 	var empty_place_count = column_count - orphan_cell_count - 1;
-	var filled_row_count = Math.floor(app.admin_cell_count / column_count);	
+	var filled_row_count = Math.floor(app.admin_cell_count / column_count);
 	var fill_empty_places = (empty_place_count >= filled_row_count);
 	if (orphan_cell_count == 0) fill_empty_places = false;
 	if (fill_empty_places) {

@@ -24,33 +24,33 @@ impl Reporting {
 
     pub fn new(clients: SharedClientList) -> Self {
 
-			let master_client_value: Option<SharedClient> = None;
-			let master_client_lock = RwLock::new(master_client_value);
-			let master_client = Arc::new(master_client_lock);
+        let master_client_value: Option<SharedClient> = None;
+        let master_client_lock = RwLock::new(master_client_value);
+        let master_client = Arc::new(master_client_lock);
 
-			let master_client_id_value: Option<u64> = None;
-			let master_client_id = Mutex::new(master_client_id_value);
+        let master_client_id_value: Option<u64> = None;
+        let master_client_id = Mutex::new(master_client_id_value);
 
-			let master_client_connection = RwLock::new(MasterClientConnectionHealth::StayedConnected);
+        let master_client_connection = RwLock::new(MasterClientConnectionHealth::StayedConnected);
 
-			return Reporting {
-				clients,
-				master_client,
-				master_client_id,
-				master_client_connection,
-			}
-		}
+        return Reporting {
+            clients,
+            master_client,
+            master_client_id,
+            master_client_connection,
+        }
+    }
 
-		pub fn start(self: Arc<Self>) {
-            spawn(move || self.run());
-		}
+    pub fn start(self: Arc<Self>) {
+        spawn(move || self.run());
+    }
 
-		pub fn run(&self) {
+    pub fn run(&self) {
 
-            loop {
-                self.wait_for_master_client();
-                self.report_to_master_client();
-            }
+        loop {
+            self.wait_for_master_client();
+            self.report_to_master_client();
+        }
 
     }
 
@@ -222,6 +222,14 @@ impl Reporting {
 
         master_client.send_packet(&packet);
 
+    }
+
+    pub fn sync_client_list(&self) {
+
+        let client_ids = self.get_client_ids_snapshot();
+        for client_id in client_ids {
+            self.report_client_life_event(client_id, true);
+        }
     }
 
 }

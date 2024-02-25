@@ -85,7 +85,6 @@ function process_packet_now(packet)
 	if (packet.type == "ID") {
 		app.client_id = +packet.data[0];
 		display("id", app.client_id);
-		admin_add_self(packet);
 	}
 
 	if (packet.type == "CLK_REF") {
@@ -117,6 +116,5 @@ function process_packet_now(packet)
 			document.location.reload();
 		}
 	}
-
 
 }
