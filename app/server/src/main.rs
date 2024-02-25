@@ -15,11 +15,16 @@ use utils::SharedClientList;
 
 use crate::utils::SharedClient;
 use crate::client_manager::ClientManager;
+use crate::reporting::Reporting;
 
 pub fn main() {
 
     let client_list = create_client_list();
-    let client_manager = ClientManager::new(client_list);
+
+    let reporting = Reporting::new(client_list.clone());
+    reporting.start();
+
+    let client_manager = ClientManager::new(client_list, reporting);
     client_manager.start();
 
     loop { sleep(Duration::from_secs(1)); }

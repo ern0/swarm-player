@@ -63,10 +63,10 @@ impl Client {
         self.send_packet(&packet);
     }
 
-    pub fn process_report_master(&self) {
+    pub fn process_report_admin(&self) {
 
         println!(
-            "{} [{}]: master mode",
+            "{} [{}]: admin mode",
             now_string(),
             self.id,
         );

@@ -21,11 +21,11 @@ pub struct ClientManager {
 
 impl ClientManager {
 
-    pub fn new(client_list: SharedClientList) -> Self {
+    pub fn new(client_list: SharedClientList, reporting: Reporting) -> Self {
 
         return ClientManager {
             client_list: client_list.clone(),
-            reporting: Reporting::new(client_list.clone()),
+            reporting,
             channel_manager: ChannelManager::new(client_list),
             debug: false,
         };
@@ -194,12 +194,12 @@ impl ClientManager {
                 client.process_request_clk0();
             },
 
-            "MASTER" => {
+            "ADMIN" => {
                 self.reporting.set_admin_client(shared_client);
                 self.reporting.set_admin_client_id(client_id);
 
                 let client = shared_client.read().unwrap();
-                client.process_report_master();
+                client.process_report_admin();
                 self.reporting.sync_client_list();
             },
 

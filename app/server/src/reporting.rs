@@ -11,11 +11,11 @@ pub struct Reporting {
     clients: SharedClientList,
     admin_client: Arc<RwLock<Option<SharedClient>>>,
     admin_client_id: Mutex<Option<u64>>,
-    admin_client_connection: RwLock<MasterClientConnectionHealth>,
+    admin_client_connection: RwLock<AdminClientConnectionHealth>,
 }
 
 #[derive(PartialEq)]
-enum MasterClientConnectionHealth {
+enum AdminClientConnectionHealth {
     StayedConnected,
     HasBeenDisconnected,
 }
@@ -31,7 +31,7 @@ impl Reporting {
         let admin_client_id_value: Option<u64> = None;
         let admin_client_id = Mutex::new(admin_client_id_value);
 
-        let admin_client_connection = RwLock::new(MasterClientConnectionHealth::StayedConnected);
+        let admin_client_connection = RwLock::new(AdminClientConnectionHealth::StayedConnected);
 
         return Reporting {
             clients,
@@ -41,14 +41,17 @@ impl Reporting {
         }
     }
 
-    pub fn start(self: Arc<Self>) {
-        spawn(move || self.run());
+    pub fn start(&self) {
+        //println!("hee......................................");
+        //spawn(move || self.run());
     }
 
     pub fn run(&self) {
 
         loop {
+            println!("wait...................................");
             self.wait_for_admin_client();
+            println!("report.................................");
             self.report_to_admin_client();
         }
 
@@ -56,8 +59,7 @@ impl Reporting {
 
     fn wait_for_admin_client(&self) {
 
-        *self.admin_client_connection.write().unwrap() =
-            MasterClientConnectionHealth::StayedConnected;
+        *self.admin_client_connection.write().unwrap() = AdminClientConnectionHealth::StayedConnected;
 
         loop {
 
@@ -78,10 +80,10 @@ impl Reporting {
 
         loop {
 
-            // it contains at least one element: the master client
+            // it contains at least one element: the admin client
             let client_ids = self.get_client_ids_snapshot();
             if *self.admin_client_connection.read().unwrap()
-                == MasterClientConnectionHealth::HasBeenDisconnected {
+                == AdminClientConnectionHealth::HasBeenDisconnected {
                 return;
             }
 
@@ -94,7 +96,7 @@ impl Reporting {
                 sleep(Duration::from_millis(200));
 
                 if *self.admin_client_connection.read().unwrap()
-                    == MasterClientConnectionHealth::HasBeenDisconnected {
+                    == AdminClientConnectionHealth::HasBeenDisconnected {
                     return;
                 }
 
@@ -191,7 +193,7 @@ impl Reporting {
         *self.admin_client.write().unwrap() = None;
 
         *self.admin_client_connection.write().unwrap() =
-            MasterClientConnectionHealth::HasBeenDisconnected;
+            AdminClientConnectionHealth::HasBeenDisconnected;
 
     }
 
@@ -228,12 +230,9 @@ impl Reporting {
 
         let client_ids = self.get_client_ids_snapshot();
         for client_id in client_ids {
-            self.report_client_life_event(client_id, true);
+            self.report_to_admin_single(client_id, true);
+            //self.report_client_life_event(client_id, true);
         }
-    }
-
-    pub fn update_skew(client_id: u64) {
-
     }
 
 }

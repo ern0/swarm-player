@@ -6,7 +6,7 @@
 
 ### Summary
 
-When the user switches hotspot, 
+When the user switches hotspot,
 it connects-disconnects automatically.
 
 Non-planned feature: time sync.
@@ -31,7 +31,7 @@ Implement auto join procedure:
 - The main webapp indicates when the user connects to the internet
 - The main webapp redirects to the public entry page
 
-It's possible that the user's device connects both the internet and the 
+It's possible that the user's device connects both the internet and the
 private hotspot (has Ethernet and WiFi or 2x WiFi),
 in this case "re-connecting" to the internet can be very quick.
 
@@ -61,7 +61,7 @@ Implement auto join:
 
 ### Time sync
 
-Was not planned in this milestone, 
+Was not planned in this milestone,
 but finally implemented for its simplicity.
 
 The client uses [Cristian's algorithm](https://www.geeksforgeeks.org/cristians-algorithm/) to
@@ -86,19 +86,19 @@ Test features:
 
 ### Summary
 
-Clients execute commands simultaneously, 
+Clients execute commands simultaneously,
 synchronized with each other.
 
-The pre-requisite is met: 
+The pre-requisite is met:
 time synchronization is already implemented.
 
 
-### Server 
+### Server
 
 - The server receives message from external sources
 - The server adds timestamp to the message:
   time of receipt plus official lag
-- The official lag is cca. 50..100 ms: 
+- The official lag is cca. 50..100 ms:
   long enough for all clients to receive it in time,
   but short enough not to be able to hear the delay
 - The server broadcasts all messages to all clients,
@@ -108,10 +108,10 @@ time synchronization is already implemented.
 ### Client
 
 - Receives message, adds it to a container
-- Retreives and processes item 
+- Retreives and processes item
   at the requested time
 - Handle overdue messages
-- Performs some simple visible action, 
+- Performs some simple visible action,
   e.g. sets background color
 
 
@@ -137,7 +137,7 @@ Configure `nginx` for web server and proxy functions.
 - Avoid screensaver: browser API and invisible video
 - Web client update: reload on request
 - Logging to server, retry if offline
-- Report values to server 
+- Report values to server
   (admin mode, audio lag),
   re-send on server restart
 - Fix GUO layout for landscape mode
@@ -189,7 +189,7 @@ Milestone features:
 - client ID
 - clock skew
 - audio lag
-- channels 
+- channels
 
 
 ## Milestone 5: The channel concept
@@ -203,7 +203,7 @@ are playing different things.
 
 We can make the following observations about the clients:
 
-- There is a *Master Client* 
+- There is a *Admin Client*
   with the audio output is connected to the main amp.
   The other Clients,
   *Public Clients* are the mobile devices of the public.
@@ -265,12 +265,12 @@ individual etc.
 
 - At any point of the show,
   the *Player* can set the number of *Public Channels*.
-  Upon this request, 
-  the server rearranges Public Clients equally 
+  Upon this request,
+  the server rearranges Public Clients equally
   into Public Channels.
 - There's a special *Master Channel*,
   which is always exists, can't be deleted,
-  only the *Master Client* is assigned to it.
+  only the *Admin Client* is assigned to it.
   So the Player can address it as the same way as Public Channels.
 - The Player addresses all commands to a single Channel,
   or more Channels.
@@ -281,9 +281,9 @@ individual etc.
   minimum number of Clients per Channel.
 - A Client can be assigned to multiple Channels.
   This is useful when there're too few clients.
-- Public Channels can be assigned to Master Client.
-  So, in extreme case, 
-  the Master Client itself, 
+- Public Channels can be assigned to Admin Client.
+  So, in extreme case,
+  the Admin Client itself,
   without any Public Client,
   is able to run the whole show.
 
@@ -300,10 +300,10 @@ There are the following types:
   Taxonomically client socket connect and disconnect
   events belong to this message type.
 - Player Content Messages:
-  the Player sends a channel or broadcast message, 
-  the server sends it to the addressed clients, 
+  the Player sends a channel or broadcast message,
+  the server sends it to the addressed clients,
   which execute it synchronized.
-  There's one message implemented if this type: 
+  There's one message implemented if this type:
   *Color Change*.
   (the implementation does not contain addressing,
   the server broadcasts it to all clients).
@@ -332,13 +332,13 @@ it can cause the following issue:
 - the Server sends it to the Client,
 - the Client starts playing the note on Channel 1
 - a new Client connects, or some disconnects,
-- therefore the Server re-organizes the 
+- therefore the Server re-organizes the
   Channel-Client assignements,
-  and as part of it, un-assigns Channel 1 
+  and as part of it, un-assigns Channel 1
   from the Client which is playing the note,
 - so when the *Note Off* arrives for Channel 1,
   the Client, which is not assigned to it anymore,
-  doesn't receive the message, 
+  doesn't receive the message,
   and never stops playing the note.
 
 Incomplete solutions:
@@ -353,7 +353,7 @@ Incomplete solutions:
 The proper solution:
 
 - track pending notes on server-side, for each client,
-- upon a *Note Off* message, instead of actual 
+- upon a *Note Off* message, instead of actual
   channel assignment, use this information for
   selecting Clients to send the message to.
 
@@ -381,15 +381,15 @@ Channel addressing requirements for the server:
 - When a new Client connects, the server
   assigns it to a channel.
 - When a new Client connects, and it's
-  added to a Channel, 
+  added to a Channel,
   another Client,
   which is assigned to this Channel and also to another one,
   might be removed from this Channel.
-- The maximum number of Channels is 4 
+- The maximum number of Channels is 4
   (subject to change).
-- Each Channel should have at least 3 Clients assigned to 
+- Each Channel should have at least 3 Clients assigned to
   (subject to change).
-- When a Client disconnects, 
+- When a Client disconnects,
   thus removes from a Channel,
   the server may
   move (remove from another Channel and assign to this)
@@ -404,7 +404,7 @@ Channel addressing requirements for the server:
 
 ### Player requirements
 
-Minimal player functions should be implemented 
+Minimal player functions should be implemented
 in order to test server channel addressing functions.
 
 The Player should send
