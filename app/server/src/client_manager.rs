@@ -41,7 +41,7 @@ impl ClientManager {
 
         if self.debug {
             println!(
-                "{} [mgr]: broadcast: {}", 
+                "{} [mgr]: broadcast: {}",
                 now_string(),
                 text_immutable,
             );
@@ -55,7 +55,7 @@ impl ClientManager {
                 responder.send(message);
             }
         }
-        
+
     }
 
     pub fn run_event_hub(&mut self) {
@@ -86,7 +86,7 @@ impl ClientManager {
     fn on_connect(&mut self, client_id: ClientId, responder: Responder) {
 
         println!(
-            "{} [{}]: connected", 
+            "{} [{}]: connected",
             now_string(),
             client_id,
         );
@@ -102,11 +102,11 @@ impl ClientManager {
     fn on_disconnect(&mut self, client_id: ClientId) {
 
         println!(
-            "{} [{}]: disconnected", 
+            "{} [{}]: disconnected",
             now_string(),
             client_id,
             );
-      
+
         self.reporting.report_client_destruction(client_id);
         self.remove_from_client_list(client_id);
         self.reporting.clear_master_on_match(client_id);
@@ -119,7 +119,7 @@ impl ClientManager {
 
             if self.debug {
                 println!(
-                    "{} [{}]: recv: {}", 
+                    "{} [{}]: recv: {}",
                     now_string(),
                     client_id,
                     text,
@@ -192,7 +192,7 @@ impl ClientManager {
             "CLK_0" => {
                 let client = shared_client.read().unwrap();
                 client.process_request_clk0();
-            },            
+            },
 
             "MASTER" => {
                 self.reporting.set_master_client(shared_client);
@@ -244,17 +244,17 @@ impl ClientManager {
 
         println!(
             "{}{} [{}]: {}",
-            stamp_string, 
-            delay_mark, 
-            client_id, 
-            message,
-            );       
-        if let Err(e) = writeln!(
-            file, 
-            "{}{} [{}]: {}", 
             stamp_string,
             delay_mark,
-            client_id, 
+            client_id,
+            message,
+            );
+        if let Err(e) = writeln!(
+            file,
+            "{}{} [{}]: {}",
+            stamp_string,
+            delay_mark,
+            client_id,
             message,
             ) {
             eprintln!("*** LOG error: {}", e);

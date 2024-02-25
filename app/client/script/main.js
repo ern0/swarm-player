@@ -81,7 +81,7 @@ function process_packet_later(packet, delay)
 }
 
 function process_packet_now(packet)
-{	
+{
 	if (packet.type == "ID") {
 		app.client_id = +packet.data[0];
 		display("id", app.client_id);

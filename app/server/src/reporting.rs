@@ -15,7 +15,7 @@ pub struct Reporting {
 }
 
 #[derive(PartialEq)]
-enum MasterClientConnectionHealth { 
+enum MasterClientConnectionHealth {
     StayedConnected,
     HasBeenDisconnected,
 }
@@ -37,7 +37,7 @@ impl Reporting {
 				clients,
 				master_client,
 				master_client_id,
-				master_client_connection,			
+				master_client_connection,
 			}
 		}
 
@@ -45,14 +45,14 @@ impl Reporting {
             spawn(move || self.run());
 		}
 
-		pub fn run(&self) {			
+		pub fn run(&self) {
 
             loop {
                 self.wait_for_master_client();
                 self.report_to_master_client();
             }
 
-    }    
+    }
 
     fn wait_for_master_client(&self) {
 
@@ -85,15 +85,15 @@ impl Reporting {
                 return;
             }
 
-            for client_id in client_ids { 
-                
+            for client_id in client_ids {
+
                 if self.report_to_master_single(client_id, first_round) {
                     return;
                 }
 
-                sleep(Duration::from_millis(200));                  
+                sleep(Duration::from_millis(200));
 
-                if *self.master_client_connection.read().unwrap() 
+                if *self.master_client_connection.read().unwrap()
                     == MasterClientConnectionHealth::HasBeenDisconnected {
                     return;
                 }
@@ -119,13 +119,13 @@ impl Reporting {
     pub fn report_to_master_single(&self, client_id: u64, force: bool) -> bool {
 
         let lock: &RwLock<Option<SharedClient>> = &self.master_client;
-        let opt: &Option<SharedClient> = &lock.read().unwrap();               
+        let opt: &Option<SharedClient> = &lock.read().unwrap();
         let Some(shared_master_client) = opt else {
             return true;
         };
 
         let mcid_opt = *self.master_client_id.lock().unwrap();
-        let Some(master_id) = mcid_opt else { 
+        let Some(master_id) = mcid_opt else {
             return true;
         };
 
@@ -140,7 +140,7 @@ impl Reporting {
             true => true,
             false => client.check_and_clear(),
         };
-        
+
         if should_send_report {
 
             let packet = client.create_report(master_id);
@@ -153,7 +153,7 @@ impl Reporting {
             }
 
         }
-        
+
         return false;
     }
 
@@ -171,7 +171,7 @@ impl Reporting {
     }
 
     pub fn set_master_client_id(&self, client_id: u64) {
-        *self.master_client_id.lock().unwrap() = Some(client_id);    
+        *self.master_client_id.lock().unwrap() = Some(client_id);
     }
 
     pub fn clear_master_on_match(&self, client_id: u64) {
@@ -188,7 +188,7 @@ impl Reporting {
         *guarded_id_opt = None;
         drop(guarded_id_opt);
 
-        *self.master_client.write().unwrap() = None;    
+        *self.master_client.write().unwrap() = None;
 
         *self.master_client_connection.write().unwrap() =
             MasterClientConnectionHealth::HasBeenDisconnected;
@@ -198,14 +198,14 @@ impl Reporting {
     pub fn report_client_life_event(&self, client_id: u64, creation: bool) {
 
         let lock: &RwLock<Option<SharedClient>> = &self.master_client;
-        let opt: &Option<SharedClient> = &lock.read().unwrap();               
+        let opt: &Option<SharedClient> = &lock.read().unwrap();
         let Some(shared_master_client) = opt else {
             return;
         };
         let master_client = shared_master_client.read().unwrap();
 
         if !creation {
-            let Some(master_id) = *self.master_client_id.lock().unwrap() else { 
+            let Some(master_id) = *self.master_client_id.lock().unwrap() else {
                 return;
             };
             if client_id == master_id {
