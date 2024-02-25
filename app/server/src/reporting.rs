@@ -42,8 +42,8 @@ impl Reporting {
     }
 
     pub fn start(&self) {
-        //println!("hee......................................");
-        //spawn(move || self.run());
+        println!("hee......................................");
+        spawn(move || self.run());
     }
 
     pub fn run(&self) {

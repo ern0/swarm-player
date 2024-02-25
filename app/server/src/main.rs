@@ -24,10 +24,12 @@ pub fn main() {
     let reporting = Reporting::new(client_list.clone());
     reporting.start();
 
-    let client_manager = ClientManager::new(client_list, reporting);
+    let client_manager = ClientManager::new(client_list);
     client_manager.start();
 
-    loop { sleep(Duration::from_secs(1)); }
+    loop {
+        sleep(Duration::from_secs(1));
+    }
 }
 
 fn create_client_list() -> SharedClientList {

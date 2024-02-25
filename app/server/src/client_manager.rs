@@ -21,11 +21,11 @@ pub struct ClientManager {
 
 impl ClientManager {
 
-    pub fn new(client_list: SharedClientList, reporting: Reporting) -> Self {
+    pub fn new(client_list: SharedClientList) -> Self {
 
         return ClientManager {
             client_list: client_list.clone(),
-            reporting,
+            reporting: Reporting::new(client_list.clone()),
             channel_manager: ChannelManager::new(client_list),
             debug: false,
         };
