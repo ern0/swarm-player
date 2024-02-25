@@ -109,7 +109,7 @@ impl ClientManager {
 
         self.reporting.report_client_destruction(client_id);
         self.remove_from_client_list(client_id);
-        self.reporting.clear_master_on_match(client_id);
+        self.reporting.clear_admin_on_match(client_id);
         self.channel_manager.report_client_destruction(client_id);
     }
 
@@ -195,12 +195,11 @@ impl ClientManager {
             },
 
             "MASTER" => {
-                self.reporting.set_master_client(shared_client);
-                self.reporting.set_master_client_id(client_id);
+                self.reporting.set_admin_client(shared_client);
+                self.reporting.set_admin_client_id(client_id);
 
                 let client = shared_client.read().unwrap();
                 client.process_report_master();
-
                 self.reporting.sync_client_list();
             },
 

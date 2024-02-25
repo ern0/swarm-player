@@ -26,7 +26,7 @@ impl Client {
             opt_responder,
             dirty: true,
             clock_skew: None,
-            audio_lag: None,            
+            audio_lag: None,
             debug,
         };
     }
@@ -42,9 +42,9 @@ impl Client {
 
         if self.debug {
             println!(
-                "[mgr] {}: send({}): {}", 
+                "[mgr] {}: send({}): {}",
                 now_string(),
-                self.id, 
+                self.id,
                 text,
                 );
         }
@@ -52,11 +52,11 @@ impl Client {
         let message = Message::Text(text.to_string());
         if let Some(responder) = &self.opt_responder {
             responder.send(message);
-        }   
+        }
     }
 
     pub fn process_request_clk0(&self) {
-        
+
         let clk_server = SystemTime::now();
         let clk_millis = systime_to_millis(clk_server);
         let packet: Packet = Packet::new_simple_num("CLK_REF", clk_millis);
@@ -64,9 +64,9 @@ impl Client {
     }
 
     pub fn process_report_master(&self) {
-        
+
         println!(
-            "{} [{}]: master mode", 
+            "{} [{}]: master mode",
             now_string(),
             self.id,
         );
@@ -79,7 +79,7 @@ impl Client {
         self.dirty = true;
 
         println!(
-            "{} [{}]: clock skew: {} ms", 
+            "{} [{}]: clock skew: {} ms",
             now_string(),
             self.id,
             value,
@@ -93,7 +93,7 @@ impl Client {
         self.dirty = true;
 
         println!(
-            "{} [{}]: audio lag: {} ms", 
+            "{} [{}]: audio lag: {} ms",
             now_string(),
             self.id,
             value,
@@ -110,7 +110,7 @@ impl Client {
         }
     }
 
-    pub fn create_report(&self, master_id: u64) -> Packet {
+    pub fn create_report(&self, admin_id: u64) -> Packet {
 
         let mut packet = Packet::new();
         packet.set_type("REPORT");
@@ -132,9 +132,9 @@ impl Client {
         packet.set_num(3, channel_mask);
 
         println!(
-            "{} [mgr]: report({}): id={} skew={} lag={} mask={}", 
+            "{} [mgr]: report({}): id={} skew={} lag={} mask={}",
             now_string(),
-            master_id,
+            admin_id,
             self.id,
             packet.get_str(1),
             packet.get_str(2),
