@@ -26,14 +26,16 @@ impl WebServer {
     pub fn start(mut self) {
 
         let event_hub_result = simple_websockets::launch(self.port);
-        if let Result::Err(error) = &event_hub_result {
-            self.logger.log_webserver_fail(self.port, error);
-            exit(1);
+        match event_hub_result {
+            Ok(event_hub) => {
+                self.logger.log_webserver_okay(self.port);
+                spawn(move || self.run(event_hub));
+            },
+            Err(error) => {
+                self.logger.log_webserver_fail(self.port, &error);
+                exit(1);
+            },
         }
-        let event_hub = event_hub_result.unwrap();
-        self.logger.log_webserver_okay(self.port);
-
-        spawn(move || self.run(event_hub));
     }
 
     pub fn run(&mut self, event_hub: simple_websockets::EventHub) {
