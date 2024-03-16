@@ -11,7 +11,7 @@ $LINUX_SUDO pkill nginx 2> /dev/null
 
 set -e
 
-export host=`ifconfig | grep 192 | cut -d' ' -f2`
+export host=`ifconfig | grep 192 | head -n1 | cut -d' ' -f2`
 if [ -z $host ]; then
 	export host=`ifconfig | grep "inet 10" | cut -d't' -f2 | cut -d' ' -f2`
 fi
