@@ -71,5 +71,9 @@ impl WebServer {
     }
 
     fn process_incoming_packet(&self, packet: Packet) {
+        println!(
+            "{}",
+            packet.get_type(),
+        );
     }
 }
