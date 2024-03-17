@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 use std::collections::HashMap;
 use std::vec::Vec;
 use tinyjson::JsonValue;
@@ -18,12 +20,12 @@ impl Packet {
 
     pub fn new() -> Self {
 
-        Self {
+        return Packet {
             packet_type: String::new(),
             data_as_num: Vec::new(),
             data_as_str: Vec::new(),
             stamp_millis: now_millis(),
-        }
+        };
     }
 
     pub fn new_simple_num(cmd: &str, parm: i64) -> Self {
@@ -32,7 +34,7 @@ impl Packet {
         packet.set_type(cmd);
         packet.set_num(0, parm);
 
-        packet
+        return packet;
     }
 
     #[allow(dead_code)]
@@ -42,7 +44,7 @@ impl Packet {
         packet.set_type(cmd);
         packet.set_str(0, parm);
 
-        packet
+        return packet;
     }
 
     pub fn set_type(&mut self, packet_type: &str) {
@@ -92,17 +94,17 @@ impl Packet {
 
         if num_value == UNDEF {
             panic!(
-                "INTERNAL ERROR: attempt to read string as number, type=\"{}\" value=\"{}\"",
+                "attempt to read string as number, type=\"{}\" value=\"{}\"",
                 &self.get_type(),
                 &self.data_as_str[index]
             );
         }
 
-        num_value
+        return num_value;
     }
 
     pub fn get_str(&self, index: usize) -> &String {
-        &self.data_as_str[index]
+        return &self.data_as_str[index];
     }
 
     pub fn get_bool(&self, index: usize) -> bool {
@@ -110,8 +112,7 @@ impl Packet {
         let left_char = &self.data_as_str[index][0..1];
         let left_upcase = left_char.to_uppercase();
 
-        // "False", "None", "No", 0 are false, all others are true
-        matches!(left_upcase.as_str(), "F" | "N" | "0")
+        return !matches!(left_upcase.as_str(), "F" | "N" | "0");
     }
 
     pub fn render_json(&self) -> String {
@@ -158,7 +159,8 @@ impl Packet {
         json.push(']');
         json.push('}');
 
-        json
+        return json;
+
     }
 
 }
@@ -214,9 +216,9 @@ fn parse_type(root_object: &JsonObj) -> String {
     let packet_type_value: &JsonValue = root_object.get("type").unwrap();
     if let JsonValue::String(string) = packet_type_value {
         return string.to_string();
-    } else {
-        return String::from("n.a.");
     }
+
+    return String::from("n.a.");
 }
 
 fn parse_data(root_object: &JsonObj, num_vec: &mut Vec<i64>, str_vec: &mut Vec<String>) {

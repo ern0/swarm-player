@@ -1,9 +1,13 @@
 #![allow(unused)]
 
-mod utils;
 mod logger;
+mod utils;
+mod packet;
 mod webserver;
 mod client_manager;
+
+use std::time::Duration;
+use std::thread::sleep;
 
 use crate::logger::Logger;
 use crate::webserver::WebServer;
@@ -19,4 +23,5 @@ pub fn main() {
 	let webserver = WebServer::new(listen_port, logger, client_manager);
 	webserver.start();
 
+    loop { sleep(Duration::from_secs(1)); }
 }
