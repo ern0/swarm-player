@@ -6,6 +6,7 @@ mod packet;
 mod webserver;
 mod client_manager;
 
+use std::sync::Arc;
 use std::time::Duration;
 use std::thread::sleep;
 
@@ -18,8 +19,8 @@ pub fn main() {
     let listen_port = 8080;
     let debug_mode = true;
 
-    let logger = Logger::new(debug_mode);
-    let client_manager = ClientManager::new();
+    let logger = Arc::new(Logger::new(debug_mode));
+    let client_manager = ClientManager::new(logger.clone());
 	let webserver = WebServer::new(listen_port, logger, client_manager);
 	webserver.start();
 

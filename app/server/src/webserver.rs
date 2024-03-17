@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use std::process::exit;
+use std::sync::Arc;
 use std::thread::spawn;
 use simple_websockets::{Event, Message, Responder};
 
@@ -11,12 +12,12 @@ use crate::client_manager::ClientManager;
 
 pub struct WebServer {
     port: Port,
-    logger: Logger,
+    logger: Arc<Logger>,
     client_manager: ClientManager,
 }
 
 impl WebServer {
-    pub fn new(port: Port, logger:Logger, client_manager: ClientManager) -> Self {
+    pub fn new(port: Port, logger: Arc<Logger>, client_manager: ClientManager) -> Self {
         Self {
             port,
             logger,

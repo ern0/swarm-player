@@ -1,6 +1,7 @@
 use simple_websockets::*;
 
 use crate::utils::{Port, ClientSessionId};
+use crate::packet::Packet;
 
 pub struct Logger {
     debug_mode: bool,
@@ -34,7 +35,6 @@ impl Logger {
             text,
             );
 
-
     }
 
     pub fn log_webserver_message_invalid(&self, client_session_id: ClientSessionId) {
@@ -44,4 +44,26 @@ impl Logger {
         );
     }
 
-}
+    pub fn log_client_connected(&self, client_session_id: ClientSessionId) {
+        println!(
+            "[session={}] client connected",
+            client_session_id,
+        );
+    }
+
+    pub fn log_client_disconnected(&self, client_session_id: ClientSessionId) {
+        println!(
+            "[session={}] client disconnected",
+            client_session_id,
+        );
+    }
+
+    pub fn log_packet_send(&self, client_session_id: ClientSessionId, text: &String) {
+        println!(
+            "[session={}] send {}",
+            client_session_id,
+            text,
+        );
+    }
+
+} // impl

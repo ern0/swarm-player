@@ -1,31 +1,31 @@
-#![allow(clippy::needless_return)]
-
 use std::collections::HashMap;
 use std::vec::Vec;
 use tinyjson::JsonValue;
+
 use crate::utils::{UNDEF, STAMP_OFFSET_MS, now_millis};
 
 pub enum SyncMode { SyncData, AsyncCommand }
+pub type PacketInt = i64;
 
 type JsonObj = HashMap<String, JsonValue>;
 
 pub struct Packet {
     packet_type: String,
-    data_as_num: Vec<i64>,
+    data_as_num: Vec<PacketInt>,
     data_as_str: Vec<String>,
-    stamp_millis: i64,
+    stamp_millis: PacketInt,
 }
 
 impl Packet {
 
     pub fn new() -> Self {
 
-        return Packet {
+        Self {
             packet_type: String::new(),
             data_as_num: Vec::new(),
             data_as_str: Vec::new(),
             stamp_millis: now_millis(),
-        };
+        }
     }
 
     pub fn new_simple_num(cmd: &str, parm: i64) -> Self {
@@ -34,7 +34,7 @@ impl Packet {
         packet.set_type(cmd);
         packet.set_num(0, parm);
 
-        return packet;
+        packet
     }
 
     #[allow(dead_code)]
@@ -44,7 +44,7 @@ impl Packet {
         packet.set_type(cmd);
         packet.set_str(0, parm);
 
-        return packet;
+        packet
     }
 
     pub fn set_type(&mut self, packet_type: &str) {
@@ -52,7 +52,7 @@ impl Packet {
     }
 
     pub fn get_type(&self) -> &String {
-        return &self.packet_type;
+        &self.packet_type
     }
 
     pub fn get_sync_mode(&self) -> SyncMode {
@@ -63,7 +63,7 @@ impl Packet {
         }
     }
 
-    pub fn set_num(&mut self, index: usize, value: i64) {
+    pub fn set_num(&mut self, index: usize, value: PacketInt) {
 
         if self.data_as_num.len() == index {
             self.data_as_num.push(value);
@@ -88,7 +88,7 @@ impl Packet {
 
     }
 
-    pub fn get_num(&self, index: usize) -> i64 {
+    pub fn get_num(&self, index: usize) -> PacketInt {
 
         let num_value = self.data_as_num[index];
 
@@ -100,11 +100,11 @@ impl Packet {
             );
         }
 
-        return num_value;
+        num_value
     }
 
     pub fn get_str(&self, index: usize) -> &String {
-        return &self.data_as_str[index];
+        &self.data_as_str[index]
     }
 
     pub fn get_bool(&self, index: usize) -> bool {
@@ -112,7 +112,7 @@ impl Packet {
         let left_char = &self.data_as_str[index][0..1];
         let left_upcase = left_char.to_uppercase();
 
-        return !matches!(left_upcase.as_str(), "F" | "N" | "0");
+        !matches!(left_upcase.as_str(), "F" | "N" | "0")
     }
 
     pub fn render_json(&self) -> String {
@@ -159,21 +159,19 @@ impl Packet {
         json.push(']');
         json.push('}');
 
-        return json;
-
+        json
     }
-
 }
 
 trait JsonCreatorExt {
-    fn push_num(&mut self, value: i64);
+    fn push_num(&mut self, value: PacketInt);
     fn push_quoted(&mut self, value: &str);
     fn push_key(&mut self, key: &str);
 }
 
 impl JsonCreatorExt for String {
 
-    fn push_num(&mut self, value: i64) {
+    fn push_num(&mut self, value: PacketInt) {
         self.push_str(&value.to_string());
     }
 
@@ -196,18 +194,18 @@ impl From<&String> for Packet {
 
         let parsed: JsonValue = text.parse().unwrap();
         let root_object: &JsonObj = parsed.get().unwrap();
-        let mut num_vec: Vec<i64> = Vec::new();
+        let mut num_vec: Vec<PacketInt> = Vec::new();
         let mut str_vec: Vec<String> = Vec::new();
 
         let packet_type = parse_type(root_object);
         parse_data(root_object, &mut num_vec, &mut str_vec);
 
-        return Packet {
+        Self {
             packet_type,
             data_as_num: num_vec,
             data_as_str: str_vec,
             stamp_millis: now_millis(),
-        };
+        }
     }
 }
 
@@ -216,12 +214,12 @@ fn parse_type(root_object: &JsonObj) -> String {
     let packet_type_value: &JsonValue = root_object.get("type").unwrap();
     if let JsonValue::String(string) = packet_type_value {
         return string.to_string();
+    } else {
+        return String::from("n.a.");
     }
-
-    return String::from("n.a.");
 }
 
-fn parse_data(root_object: &JsonObj, num_vec: &mut Vec<i64>, str_vec: &mut Vec<String>) {
+fn parse_data(root_object: &JsonObj, num_vec: &mut Vec<PacketInt>, str_vec: &mut Vec<String>) {
 
     let data_arr: &JsonValue = root_object.get("data").unwrap();
     if let JsonValue::Array(vec) = data_arr {
@@ -230,7 +228,7 @@ fn parse_data(root_object: &JsonObj, num_vec: &mut Vec<i64>, str_vec: &mut Vec<S
 
             match elem {
                 JsonValue::Number(num) => {
-                    num_vec.push(*num as i64);
+                    num_vec.push(*num as PacketInt);
                     str_vec.push(num.to_string());
                 }
                 JsonValue::String(str) => {
