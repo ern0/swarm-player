@@ -23,7 +23,6 @@ impl ClientManager {
         self.logger.log_packet_send(client_session_id, &text);
 		let message = Message::Text(text.to_string());
 		responder.send(message);
-
     }
 
 	pub fn on_client_connect(&mut self, client_session_id: ClientSessionId, responder: Responder) {
