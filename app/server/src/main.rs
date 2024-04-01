@@ -19,9 +19,9 @@ pub fn main() {
     let listen_port = 8080;
     let debug_mode = true;
 
-    let logger = Arc::new(Logger::new(debug_mode));
-    let client_manager = ClientManager::new(logger.clone());
-	let webserver = WebServer::new(listen_port, logger, client_manager);
+    let logger = Arc::new(Logger { debug_mode });
+    let client_manager = ClientManager { logger: logger.clone() };
+	let webserver = WebServer { listen_port, logger, client_manager };
 	webserver.start();
 
     loop { sleep(Duration::from_secs(1)); }

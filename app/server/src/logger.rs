@@ -4,15 +4,10 @@ use crate::utils::{Port, ClientSessionId};
 use crate::packet::Packet;
 
 pub struct Logger {
-    debug_mode: bool,
+    pub debug_mode: bool,
 }
 
 impl Logger {
-    pub fn new(debug_mode: bool) -> Self {
-        Self {
-            debug_mode
-        }
-    }
 
     pub fn log_webserver_start_success(&self, port: Port) {
         println!("[webserver]: server is up, listening on port {}",

@@ -6,16 +6,10 @@ use crate::utils::{Port, ClientSessionId};
 use crate::packet::{Packet, PacketInt};
 
 pub struct ClientManager {
-    logger: Arc<Logger>,
+    pub logger: Arc<Logger>,
 }
 
 impl ClientManager {
-	pub fn new(logger: Arc<Logger>) -> Self {
-
-		Self {
-            logger,
-        }
-	}
 
     pub fn send_packet(&self, packet: Packet, client_session_id: ClientSessionId, responder: Responder) {
 

@@ -11,30 +11,23 @@ use crate::packet::Packet;
 use crate::client_manager::ClientManager;
 
 pub struct WebServer {
-    port: Port,
-    logger: Arc<Logger>,
-    client_manager: ClientManager,
+    pub listen_port: Port,
+    pub logger: Arc<Logger>,
+    pub client_manager: ClientManager,
 }
 
 impl WebServer {
-    pub fn new(port: Port, logger: Arc<Logger>, client_manager: ClientManager) -> Self {
-        Self {
-            port,
-            logger,
-            client_manager,
-        }
-    }
 
     pub fn start(mut self) {
 
-        let event_hub_result = simple_websockets::launch(self.port);
+        let event_hub_result = simple_websockets::launch(self.listen_port);
         match event_hub_result {
             Ok(event_hub) => {
-                self.logger.log_webserver_start_success(self.port);
+                self.logger.log_webserver_start_success(self.listen_port);
                 spawn(move || self.run(event_hub));
             },
             Err(error) => {
-                self.logger.log_webserver_start_fail(self.port, &error);
+                self.logger.log_webserver_start_fail(self.listen_port, &error);
                 exit(1);
             },
         }
