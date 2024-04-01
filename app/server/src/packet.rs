@@ -6,6 +6,7 @@ use crate::utils::{UNDEF, STAMP_OFFSET_MS, now_millis};
 
 pub enum SyncMode { SyncData, AsyncCommand }
 pub type PacketInt = i64;
+pub type PacketStamp = i64;
 
 type JsonObj = HashMap<String, JsonValue>;
 
@@ -13,7 +14,7 @@ pub struct Packet {
     packet_type: String,
     data_as_num: Vec<PacketInt>,
     data_as_str: Vec<String>,
-    stamp_millis: PacketInt,
+    stamp_millis: PacketStamp,
 }
 
 impl Packet {
@@ -28,7 +29,7 @@ impl Packet {
         }
     }
 
-    pub fn new_simple_num(cmd: &str, parm: i64) -> Self {
+    pub fn new_simple_num(cmd: &str, parm: PacketInt) -> Self {
 
         let mut packet = Packet::new();
         packet.set_type(cmd);
